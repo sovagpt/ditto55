@@ -299,17 +299,25 @@ scene.background = null;
 
           document.querySelector('.download-btn').addEventListener('click', async () => {
     if (downloadUrl) {
-        const proxyUrl = `/api/proxy?url=${encodeURIComponent(downloadUrl)}`;
-        const response = await fetch(proxyUrl);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'transformed-model.glb';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        try {
+            const proxyUrl = `/api/proxy?url=${encodeURIComponent(downloadUrl)}`;
+            const response = await fetch(proxyUrl, {
+                headers: {
+                    'Accept': 'model/gltf-binary'
+                }
+            });
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ditto-transformed.glb';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (error) {
+            console.error('Download failed:', error);
+        }
     }
 });
 
