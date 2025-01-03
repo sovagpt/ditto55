@@ -44,6 +44,17 @@
            display: flex;
            gap: 15px;
        }
+       .disclaimer {
+    position: fixed;
+    bottom: 120px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 10px;
+    text-shadow: 1px 1px 0 #3B4CCA;
+    text-align: center;
+}
        .header-btn {
            background: #FF5350;
            color: white;
@@ -156,6 +167,9 @@
     <div id="container"></div>
     <div id="loading">Transforming...</div>
     <div id="status"></div>
+    <div class="disclaimer">
+        Please allow up to 1 minute for 3D object generation due to high demand
+    </div>
     <div class="dialog-box">
         <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
     </div>
@@ -225,10 +239,11 @@ scene.background = null;
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            mode: "preview",
-            prompt: prompt,
-            art_style: "realistic"
-        })
+    mode: "preview",
+    prompt: prompt,
+    art_style: "realistic",
+    quality: "speed" // Add this line
+})
     });
 
     console.log('Preview Response Status:', previewResponse.status);
@@ -298,27 +313,15 @@ scene.background = null;
           }
 
           document.querySelector('.download-btn').addEventListener('click', async () => {
-    if (downloadUrl) {
-        try {
-            const proxyUrl = `/api/proxy?url=${encodeURIComponent(downloadUrl)}`;
-            const response = await fetch(proxyUrl, {
-                headers: {
-                    'Accept': 'model/gltf-binary'
-                }
-            });
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'ditto-transformed.glb';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        } catch (error) {
-            console.error('Download failed:', error);
-        }
-    }
+    if (!downloadUrl) return;
+    
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = 'ditto-transformed.glb';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 });
 
 function updateProgress(percent) {
