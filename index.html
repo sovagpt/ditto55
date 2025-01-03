@@ -86,68 +86,87 @@ const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
             });
         }
 
-async function generate3DModel(prompt) {
-   const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-       method: 'POST',
-       headers: {
-           'Authorization': `Bearer ${MESHY_API_KEY}`,
-           'Content-Type': 'application/json'
-       },
-       body: JSON.stringify({
-           mode: "preview",
-           prompt: prompt,
-           art_style: "realistic"
-       })
-   });
-
-   if (!previewResponse.ok) throw new Error('Preview generation failed');
-   const previewData = await previewResponse.json();
-   const taskId = previewData.result;
-
-   let status;
-   do {
-       const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
-           headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+        javascriptCopyasync function generate3DModel(prompt) {
+   try {
+       const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+           method: 'POST',
+           headers: {
+               'Authorization': `Bearer ${MESHY_API_KEY}`,
+               'Content-Type': 'application/json'
+           },
+           body: JSON.stringify({
+               mode: "preview",
+               prompt: prompt,
+               art_style: "realistic"
+           })
        });
-       const statusData = await statusResponse.json();
-       status = statusData.status;
-       document.getElementById('status').textContent = `Preview: ${status}`;
-       await new Promise(r => setTimeout(r, 2000));
-   } while (status === 'PENDING' || status === 'IN_PROGRESS');
 
-   if (status !== 'SUCCEEDED') throw new Error('Preview failed');
-
-   const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-       method: 'POST',
-       headers: {
-           'Authorization': `Bearer ${MESHY_API_KEY}`,
-           'Content-Type': 'application/json'
-       },
-       body: JSON.stringify({
-           mode: "refine",
-           preview_task_id: taskId,
-           enable_pbr: true
-       })
-   });
-
-   if (!refineResponse.ok) throw new Error('Refine task failed');
-   const refineData = await refineResponse.json();
-   const refineId = refineData.result;
-
-   do {
-       const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineId}`, {
-           headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-       });
-       const statusData = await statusResponse.json();
-       status = statusData.status;
-       document.getElementById('status').textContent = `Refining: ${status}`;
-       if (status === 'SUCCEEDED') {
-           return statusData.model_urls.glb;
+       console.log('Preview Response:', await previewResponse.clone().json());
+       
+       if (!previewResponse.ok) {
+           const error = await previewResponse.text();
+           console.error('Preview Error:', error);
+           throw new Error(`Preview generation failed: ${error}`);
        }
-       await new Promise(r => setTimeout(r, 2000));
-   } while (status === 'PENDING' || status === 'IN_PROGRESS');
 
-   throw new Error('Refine failed');
+       const previewData = await previewResponse.json();
+       const taskId = previewData.result;
+
+       let status;
+       do {
+           const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
+               headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+           });
+           const statusData = await statusResponse.json();
+           console.log('Status Data:', statusData);
+           status = statusData.status;
+           document.getElementById('status').textContent = `Preview: ${status}`;
+           await new Promise(r => setTimeout(r, 2000));
+       } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+       if (status !== 'SUCCEEDED') throw new Error('Preview failed');
+
+       const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+           method: 'POST',
+           headers: {
+               'Authorization': `Bearer ${MESHY_API_KEY}`,
+               'Content-Type': 'application/json'
+           },
+           body: JSON.stringify({
+               mode: "refine",
+               preview_task_id: taskId,
+               enable_pbr: true
+           })
+       });
+
+       if (!refineResponse.ok) {
+           const error = await refineResponse.text();
+           console.error('Refine Error:', error);
+           throw new Error(`Refine task failed: ${error}`);
+       }
+
+       const refineData = await refineResponse.json();
+       const refineId = refineData.result;
+
+       do {
+           const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineId}`, {
+               headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+           });
+           const statusData = await statusResponse.json();
+           console.log('Refine Status:', statusData);
+           status = statusData.status;
+           document.getElementById('status').textContent = `Refining: ${status}`;
+           if (status === 'SUCCEEDED') {
+               return statusData.model_urls.glb;
+           }
+           await new Promise(r => setTimeout(r, 2000));
+       } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+       throw new Error('Refine failed');
+   } catch (error) {
+       console.error('Generate3DModel Error:', error);
+       throw error;
+   }
 }
 
         async function downloadAndCreateBlob(url) {
