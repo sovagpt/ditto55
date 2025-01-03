@@ -1,5 +1,9 @@
 {
-  "env": {
-    "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK"
-  }
+ "env": {
+   "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK"
+ },
+ "version": 2,
+ "api": {
+   "bodyParser": true
+ }
 }
