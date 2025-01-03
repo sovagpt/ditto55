@@ -2,11 +2,11 @@ export default async function handler(req, res) {
   const url = req.query.url;
   const response = await fetch(url, {
     headers: {
-      'Authorization': `Bearer ${process.env.MESHY_API_KEY}`
+      'Authorization': `Bearer ${process.env.MESHY_API_KEY}`,
+      'Accept': 'model/gltf-binary'
     }
   });
-  const data = await response.blob();
-  const contentType = response.headers.get('content-type');
-  res.setHeader('Content-Type', contentType);
-  res.send(data);
+  const arrayBuffer = await response.arrayBuffer();
+  res.setHeader('Content-Type', 'model/gltf-binary');
+  res.send(Buffer.from(arrayBuffer));
 }
