@@ -150,8 +150,15 @@
         }
 
         async function downloadAndCreateBlob(url) {
-            const response = await fetch(`/api/proxy?url=${encodeURIComponent(url)}`);
-            const blob = await response.blob();
+            const response = await fetch(url, {
+              headers: {
+                'Authorization': `Bearer ${MESHY_API_KEY}`,
+                'Accept': 'model/gltf-binary'
+              }
+            });
+            if (!response.ok) throw new Error('Download failed');
+            const arrayBuffer = await response.arrayBuffer();
+            const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
             return URL.createObjectURL(blob);
           }
 
