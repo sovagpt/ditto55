@@ -122,21 +122,23 @@
            transition: width 0.3s;
        }
        .download-btn {
-           position: fixed;
-           top: 90px;
-           right: 30px;
-           padding: 10px 20px;
-           background: #3B4CCA;
-           color: white;
-           border: none;
-           border-radius: 20px;
-           cursor: pointer;
-           display: none;
-           font-family: 'Press Start 2P', system-ui;
-           font-size: 12px;
-           box-shadow: 0 0 15px rgba(59, 76, 202, 0.5);
-           transition: transform 0.2s;
-       }
+    position: fixed;
+    top: 90px;
+    right: 30px;
+    padding: 10px 20px;
+    background: #3B4CCA;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    display: none;
+    pointer-events: auto;
+    z-index: 1001;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    box-shadow: 0 0 15px rgba(59, 76, 202, 0.5);
+    transition: transform 0.2s;
+}
        .download-btn:hover {
            transform: scale(1.05);
            background: #2A3BBB;
@@ -314,15 +316,28 @@ scene.background = null;
           }
 
           document.querySelector('.download-btn').addEventListener('click', async () => {
-    if (!downloadUrl) return;
-    
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = 'ditto-transformed.glb';
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+   if (!downloadUrl) return;
+   
+   try {
+       const proxyUrl = `/api/proxy?url=${encodeURIComponent(downloadUrl)}`;
+       const response = await fetch(proxyUrl, {
+           headers: {
+               'Accept': 'model/gltf-binary'
+           }
+       });
+       const blob = await response.blob();
+       const url = window.URL.createObjectURL(blob);
+       const a = document.createElement('a');
+       a.href = url;
+       a.download = 'ditto-transformed.glb';
+       a.style.display = 'none';
+       document.body.appendChild(a);
+       a.click();
+       window.URL.revokeObjectURL(url);
+       document.body.removeChild(a);
+   } catch (error) {
+       console.error('Download failed:', error);
+   }
 });
 
 function updateProgress(percent) {
@@ -333,58 +348,60 @@ function updateProgress(percent) {
 }
 
 async function transform(promptText) {
-    if (!dittoModel) return;
-    const bar = document.querySelector('.progress-bar');
-    const downloadBtn = document.querySelector('.download-btn');
-    bar.style.display = 'block';
-    downloadBtn.style.display = 'none';
-    
-    try {
-        const modelUrl = await generate3DModel(promptText);
-        const localUrl = await downloadAndCreateBlob(modelUrl);
-        downloadUrl = modelUrl;
-        
-        const loader = new THREE.GLTFLoader();
-        loader.load(localUrl, (gltf) => {
-            URL.revokeObjectURL(localUrl);
-            if (currentModel) scene.remove(currentModel);
-            
-            const newModel = gltf.scene;
-            currentModel = newModel;
-            scene.add(newModel);
-            newModel.scale.set(0, 0, 0);
-            
-            gsap.to(dittoModel.scale, {
-                x: 0, y: 0, z: 0,
-                duration: 1,
-                ease: "power2.in"
-            });
+   if (!dittoModel) return;
+   const bar = document.querySelector('.progress-bar');
+   const downloadBtn = document.querySelector('.download-btn');
+   bar.style.display = 'block';
+   downloadBtn.style.display = 'none';
+   
+   try {
+       const modelUrl = await generate3DModel(promptText);
+       downloadUrl = modelUrl;
+       const localUrl = await downloadAndCreateBlob(modelUrl);
+       
+       const loader = new THREE.GLTFLoader();
+       loader.load(localUrl, (gltf) => {
+           URL.revokeObjectURL(localUrl);
+           if (currentModel) scene.remove(currentModel);
+           
+           const newModel = gltf.scene;
+           currentModel = newModel;
+           scene.add(newModel);
+           newModel.scale.set(0, 0, 0);
+           
+           gsap.to(dittoModel.scale, {
+               x: 0, y: 0, z: 0,
+               duration: 1,
+               ease: "power2.in"
+           });
 
-            gsap.to(newModel.scale, {
-                x: 1, y: 1, z: 1,
-                duration: 1,
-                delay: 1,
-                ease: "power2.out",
-                onComplete: () => {
-                    gsap.to(newModel.rotation, {
-                        y: Math.PI * 2,
-                        duration: 2,
-                        ease: "power1.inOut"
-                    });
-                    downloadBtn.style.display = 'block';
-                }
-            });
-        });
-    } catch (error) {
-        console.error('Transform failed:', error);
-        gsap.to(dittoModel.scale, {
-            x: 1, y: 1, z: 1,
-            duration: 1,
-            ease: "power2.out"
-        });
-    } finally {
-        bar.style.display = 'none';
-    }
+           gsap.to(newModel.scale, {
+               x: 1, y: 1, z: 1,
+               duration: 1,
+               delay: 1,
+               ease: "power2.out",
+               onComplete: () => {
+                   gsap.to(newModel.rotation, {
+                       y: Math.PI * 2,
+                       duration: 2,
+                       ease: "power1.inOut"
+                   });
+                   downloadBtn.style.display = 'block';
+                   downloadBtn.style.pointerEvents = 'auto';
+                   downloadBtn.style.zIndex = '1001';
+               }
+           });
+       });
+   } catch (error) {
+       console.error('Transform failed:', error);
+       gsap.to(dittoModel.scale, {
+           x: 1, y: 1, z: 1,
+           duration: 1,
+           ease: "power2.out"
+       });
+   } finally {
+       bar.style.display = 'none';
+   }
 }
 
         function animate() {
