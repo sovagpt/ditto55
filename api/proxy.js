@@ -9,19 +9,23 @@ export default async function handler(req, res) {
   };
 
   if (req.method === 'POST') {
-    fetchOptions.body = req.body;
     fetchOptions.headers['Content-Type'] = 'application/json';
+    fetchOptions.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
   }
 
-  const response = await fetch(url, fetchOptions);
-  const contentType = response.headers.get('content-type');
-  res.setHeader('Content-Type', contentType);
+  try {
+    const response = await fetch(url, fetchOptions);
+    const contentType = response.headers.get('content-type');
+    res.setHeader('Content-Type', contentType || 'application/json');
 
-  if (contentType.includes('application/json')) {
-    const data = await response.json();
-    res.json(data);
-  } else {
-    const buffer = await response.arrayBuffer();
-    res.send(Buffer.from(buffer));
+    if (contentType?.includes('application/json')) {
+      const data = await response.json();
+      res.json(data);
+    } else {
+      const buffer = await response.arrayBuffer();
+      res.send(Buffer.from(buffer));
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 }
