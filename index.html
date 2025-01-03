@@ -47,6 +47,15 @@ body {
     transition: width 0.3s;
 }
 
+#container { 
+    width: 100vw; 
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
 .download-btn {
     position: fixed;
     top: 20px;
@@ -87,7 +96,11 @@ let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, d
         async function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ 
+    antialias: true,
+    alpha: true 
+});
+scene.background = null;
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setClearColor(0x000000, 0); // Make renderer background transparent
             document.getElementById('container').appendChild(renderer.domElement);
