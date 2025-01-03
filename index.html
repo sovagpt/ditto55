@@ -90,6 +90,7 @@ let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, d
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0); // Make renderer background transparent
             document.getElementById('container').appendChild(renderer.domElement);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -210,7 +211,8 @@ let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, d
 
           document.querySelector('.download-btn').addEventListener('click', async () => {
     if (downloadUrl) {
-        const response = await fetch(downloadUrl);
+        const proxyUrl = `/api/proxy?url=${encodeURIComponent(downloadUrl)}`;
+        const response = await fetch(proxyUrl);
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
