@@ -86,7 +86,7 @@ const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
             });
         }
 
-        javascriptCopyasync function generate3DModel(prompt) {
+        async function generate3DModel(prompt) {
    try {
        const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
            method: 'POST',
