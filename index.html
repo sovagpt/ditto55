@@ -22,6 +22,37 @@
             border: none; font-size: 14px;
             background: transparent; outline: none;
         }
+        .progress-bar {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 20px;
+    background: #333;
+    border-radius: 10px;
+    display: none;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #4CAF50;
+    border-radius: 10px;
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.download-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: none;
+}
         #loading, #status { 
             position: fixed;
             top: 50%; left: 50%;
@@ -38,11 +69,15 @@
     <div class="dialog-box">
         <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
     </div>
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+    <button class="download-btn">Download Model</button>
 
     <script>
     const API_BASE = '/api';
 const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
-        let scene, camera, renderer, dittoModel, mixer, controls;
+let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, downloadUrl = null;
 
         async function init() {
             scene = new THREE.Scene();
@@ -87,86 +122,77 @@ const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
         }
 
         async function generate3DModel(prompt) {
-   try {
-       const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-           method: 'POST',
-           headers: {
-               'Authorization': `Bearer ${MESHY_API_KEY}`,
-               'Content-Type': 'application/json'
-           },
-           body: JSON.stringify({
-               mode: "preview",
-               prompt: prompt,
-               art_style: "realistic"
-           })
-       });
+    updateProgress(10);
+    const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${MESHY_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            mode: "preview",
+            prompt: prompt,
+            art_style: "realistic"
+        })
+    });
 
-       console.log('Preview Response:', await previewResponse.clone().json());
-       
-       if (!previewResponse.ok) {
-           const error = await previewResponse.text();
-           console.error('Preview Error:', error);
-           throw new Error(`Preview generation failed: ${error}`);
-       }
+    console.log('Preview Response Status:', previewResponse.status);
+    const previewData = await previewResponse.json();
+    console.log('Preview Data:', previewData);
 
-       const previewData = await previewResponse.json();
-       const taskId = previewData.result;
+    if (!previewResponse.ok) throw new Error('Preview generation failed');
+    const taskId = previewData.result;
 
-       let status;
-       do {
-           const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
-               headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-           });
-           const statusData = await statusResponse.json();
-           console.log('Status Data:', statusData);
-           status = statusData.status;
-           document.getElementById('status').textContent = `Preview: ${status}`;
-           await new Promise(r => setTimeout(r, 2000));
-       } while (status === 'PENDING' || status === 'IN_PROGRESS');
+    let status;
+    do {
+        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
+            headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+        });
+        const statusData = await statusResponse.json();
+        console.log('Status Data:', statusData);
+        status = statusData.status;
+        document.getElementById('status').textContent = `Preview: ${status}`;
+        updateProgress(30);
+        await new Promise(r => setTimeout(r, 2000));
+    } while (status === 'PENDING' || status === 'IN_PROGRESS');
 
-       if (status !== 'SUCCEEDED') throw new Error('Preview failed');
+    if (status !== 'SUCCEEDED') throw new Error('Preview failed');
+    updateProgress(50);
 
-       const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-           method: 'POST',
-           headers: {
-               'Authorization': `Bearer ${MESHY_API_KEY}`,
-               'Content-Type': 'application/json'
-           },
-           body: JSON.stringify({
-               mode: "refine",
-               preview_task_id: taskId,
-               enable_pbr: true
-           })
-       });
+    const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${MESHY_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            mode: "refine",
+            preview_task_id: taskId,
+            enable_pbr: true
+        })
+    });
 
-       if (!refineResponse.ok) {
-           const error = await refineResponse.text();
-           console.error('Refine Error:', error);
-           throw new Error(`Refine task failed: ${error}`);
-       }
+    if (!refineResponse.ok) throw new Error('Refine task failed');
+    const refineData = await refineResponse.json();
+    const refineId = refineData.result;
 
-       const refineData = await refineResponse.json();
-       const refineId = refineData.result;
+    do {
+        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineId}`, {
+            headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+        });
+        const statusData = await statusResponse.json();
+        console.log('Refine Status:', statusData);
+        status = statusData.status;
+        document.getElementById('status').textContent = `Refining: ${status}`;
+        updateProgress(80);
+        if (status === 'SUCCEEDED') {
+            updateProgress(100);
+            return statusData.model_urls.glb;
+        }
+        await new Promise(r => setTimeout(r, 2000));
+    } while (status === 'PENDING' || status === 'IN_PROGRESS');
 
-       do {
-           const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineId}`, {
-               headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-           });
-           const statusData = await statusResponse.json();
-           console.log('Refine Status:', statusData);
-           status = statusData.status;
-           document.getElementById('status').textContent = `Refining: ${status}`;
-           if (status === 'SUCCEEDED') {
-               return statusData.model_urls.glb;
-           }
-           await new Promise(r => setTimeout(r, 2000));
-       } while (status === 'PENDING' || status === 'IN_PROGRESS');
-
-       throw new Error('Refine failed');
-   } catch (error) {
-       console.error('Generate3DModel Error:', error);
-       throw error;
-   }
+    throw new Error('Refine failed');
 }
 
         async function downloadAndCreateBlob(url) {
@@ -176,50 +202,82 @@ const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
             return URL.createObjectURL(blob);
           }
 
-        async function transform(promptText) {
-            if (!dittoModel) return;
-            const loading = document.getElementById('loading');
-            const status = document.getElementById('status');
-            loading.style.display = 'block';
-            status.style.display = 'block';
+          document.querySelector('.download-btn').addEventListener('click', async () => {
+    if (downloadUrl) {
+        const response = await fetch(downloadUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'transformed-model.glb';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    }
+});
+
+function updateProgress(percent) {
+    const bar = document.querySelector('.progress-bar');
+    const fill = document.querySelector('.progress-fill');
+    bar.style.display = 'block';
+    fill.style.width = `${percent}%`;
+}
+
+async function transform(promptText) {
+    if (!dittoModel) return;
+    const bar = document.querySelector('.progress-bar');
+    const downloadBtn = document.querySelector('.download-btn');
+    bar.style.display = 'block';
+    downloadBtn.style.display = 'none';
+    
+    try {
+        const modelUrl = await generate3DModel(promptText);
+        const localUrl = await downloadAndCreateBlob(modelUrl);
+        downloadUrl = modelUrl;
+        
+        const loader = new THREE.GLTFLoader();
+        loader.load(localUrl, (gltf) => {
+            URL.revokeObjectURL(localUrl);
+            if (currentModel) scene.remove(currentModel);
             
-            try {
-                gsap.to(dittoModel.scale, {
-                    x: 0, y: 0, z: 0,
-                    duration: 1,
-                    ease: "power2.in"
-                });
+            const newModel = gltf.scene;
+            currentModel = newModel;
+            scene.add(newModel);
+            newModel.scale.set(0, 0, 0);
+            
+            gsap.to(dittoModel.scale, {
+                x: 0, y: 0, z: 0,
+                duration: 1,
+                ease: "power2.in"
+            });
 
-                const modelUrl = await generate3DModel(promptText);
-                const localUrl = await downloadAndCreateBlob(modelUrl);
-                const loader = new THREE.GLTFLoader();
-                
-                loader.load(localUrl, (gltf) => {
-                    URL.revokeObjectURL(localUrl);
-                    const newModel = gltf.scene;
-                    scene.add(newModel);
-                    newModel.scale.set(0, 0, 0);
-
-                    gsap.to(newModel.scale, {
-                        x: 1, y: 1, z: 1,
-                        duration: 1,
-                        delay: 1,
-                        ease: "power2.out"
+            gsap.to(newModel.scale, {
+                x: 1, y: 1, z: 1,
+                duration: 1,
+                delay: 1,
+                ease: "power2.out",
+                onComplete: () => {
+                    gsap.to(newModel.rotation, {
+                        y: Math.PI * 2,
+                        duration: 2,
+                        ease: "power1.inOut"
                     });
-                });
-
-            } catch (error) {
-                console.error('Transform failed:', error);
-                gsap.to(dittoModel.scale, {
-                    x: 1, y: 1, z: 1,
-                    duration: 1,
-                    ease: "power2.out"
-                });
-            } finally {
-                loading.style.display = 'none';
-                status.style.display = 'none';
-            }
-        }
+                    downloadBtn.style.display = 'block';
+                }
+            });
+        });
+    } catch (error) {
+        console.error('Transform failed:', error);
+        gsap.to(dittoModel.scale, {
+            x: 1, y: 1, z: 1,
+            duration: 1,
+            ease: "power2.out"
+        });
+    } finally {
+        bar.style.display = 'none';
+    }
+}
 
         function animate() {
             requestAnimationFrame(animate);
