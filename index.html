@@ -54,7 +54,7 @@
        }
        .disclaimer {
    position: absolute;
-   bottom: -40px;
+   top: 80px;
    left: 50%;
    transform: translateX(-50%);
    color: white;
@@ -64,6 +64,7 @@
    text-align: center;
    width: 100%;
    z-index: 1001;
+   bottom: auto;
 }
 
 .ditto-model {
@@ -90,7 +91,7 @@
        }
        .dialog-box {
    position: absolute;
-   bottom: -20px;
+   bottom: 0px;
    left: 25%;
    transform: translateX(-50%);
    width: 400px;
@@ -211,7 +212,6 @@
     border-radius: 8px;
     padding: 12px;
     color: white;
-    font-family: 'Quicksand', sans-serif;
 }
        .progress-fill {
            height: 100%;
@@ -271,12 +271,12 @@
         <div id="container">
             <div id="loading">Transforming...</div>
             <div id="status"></div>
-        </div>
-        <div class="dialog-box">
-            <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
             <div class="disclaimer">
                 Please allow up to 1 minute for 3D object generation
             </div>
+        </div>
+        <div class="dialog-box">
+            <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
         </div>
         <div class="chat-terminal">
             <div class="chat-messages">
@@ -387,23 +387,23 @@ function addMessage(text, type) {
 }
 
 async function handleAIResponse(message) {
-    try {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: message,
-                systemPrompt: SYSTEM_PROMPT
-            })
-        });
+   try {
+       const response = await fetch('/api/chat', {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json'
+           },
+           body: JSON.stringify({
+               message: message,
+               systemPrompt: SYSTEM_PROMPT
+           })
+       });
 
-        if (!response.ok) throw new Error('API Error');
-        
-        const data = await response.json();
-        if (data?.content?.[0]?.text) {
-            addMessage(data.content[0].text, 'assistant');
+       if (!response.ok) throw new Error('API Error');
+       
+       const data = await response.json();
+       if (data?.content?.[0]?.text) {
+        addMessage(data.content[0].text, 'assistant');
         }
     } catch (error) {
         console.error('Chat error:', error);
@@ -423,7 +423,7 @@ async function handleAIResponse(message) {
     mode: "preview",
     prompt: prompt,
     art_style: "realistic",
-    quality: "speed" // Add this line
+    quality: "speed"
 })
     });
 
@@ -499,7 +499,6 @@ function typewriterEffect(element, text, speed = 20) {
     type();
 }
 
-// Modify addMessage function:
 function addMessage(text, type) {
     const messages = document.querySelector('.chat-messages');
     const messageDiv = document.createElement('div');
@@ -618,16 +617,14 @@ async function transform(promptText) {
         }
 
         function handleKeyDown(event) {
-    if (event.key === 'Enter') {
-        const prompt = event.target.value;
-        if (prompt) {
-            addMessage(prompt, 'user');
-            transform(prompt);
-            handleAIResponse(prompt);
-            event.target.value = '';
+            if (event.key === 'Enter') {
+                const prompt = event.target.value;
+                if (prompt) {
+                    transform(prompt);
+                    event.target.value = '';
+                }
+            }
         }
-    }
-}
 
         window.onload = init;
         window.onresize = function() {
