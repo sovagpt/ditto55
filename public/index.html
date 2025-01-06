@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ditto Transform</title>
+    <link rel="icon" type="image/webp" href="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67781b9951b4771e3d5dfda6_Ditto_180x180.webp">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+       body { 
+           margin: 0; 
+           background: url('https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/677815b17d293c5b2b9269c8_forest.png') no-repeat center center fixed; 
+           background-size: cover;
+       }
+       #container {
+   width: 800px;
+   height: 740px;
+   background-color: rgba(0, 0, 0, 0.7);
+   border-radius: 10px 10px 0 0;
+   position: relative;
+   overflow: hidden;
+   transition: all 0.3s ease;
+   margin-top: -20px;
+   margin-bottom: 0;
+   border: 1px solid rgba(255, 255, 255, 0.1);
+   display: flex;
+   justify-content: center;
+   align-items: center;
+}
+       .header {
+           background: rgba(255, 255, 255, 0.2);
+           display: flex;
+           justify-content: space-between;
+           align-items: center;
+           padding: 15px 30px;
+           position: fixed;
+           top: 0;
+           left: 0;
+           right: 0;
+           z-index: 1000;
+           backdrop-filter: blur(5px);
+       }
+       .logo {
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 18px;
+    text-shadow: 2px 2px 0 #3B4CCA;
+    display: flex;  /* Add this */
+    align-items: center;  /* Add this */
+    gap: 12px;  /* Add this for spacing between logo and text */
+}
+
+.logo img {
+    width: 32px;  /* Adjust size as needed */
+    height: 32px;
+    border-radius: 50%;  /* Makes it circular if you want */
+}
+       .nav-buttons {
+           display: flex;
+           gap: 15px;
+       }
+       .disclaimer {
+   position: absolute;
+   top: 80px;
+   left: 50%;
+   transform: translateX(-50%);
+   color: white;
+   font-family: 'Press Start 2P', system-ui;
+   font-size: 10px;
+   text-shadow: 1px 1px 0 #3B4CCA;
+   text-align: center;
+   width: 100%;
+   z-index: 1001;
+   bottom: auto;
+}
+
+.ditto-model {
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+}
+       .header-btn {
+           background: #A664A5;
+           color: white;
+           padding: 8px 16px;
+           border: none;
+           border-radius: 20px;
+           cursor: pointer;
+           font-family: 'Press Start 2P', system-ui;
+           font-size: 12px;
+           transition: transform 0.2s;
+           text-decoration: none;
+       }
+       .header-btn:hover {
+           transform: scale(1.05);
+           background: #8A4589;
+       }
+       .dialog-box {
+   position: absolute;
+   bottom: 0px;
+   left: 25%;
+   transform: translateX(-50%);
+   width: 400px;
+   bottom: 10px;
+   background: rgba(0, 0, 0, 0.7);
+   border-radius: 10px;
+   border: 1px solid rgba(255, 255, 255, 0.1);
+   padding: 10px;
+   z-index: 1000;
+   font-family: 'Press Start 2P', system-ui;
+   margin: 0;
+   box-shadow: 0 0 20px rgba(59, 76, 202, 0.5);
+}
+
+input {
+    width: 100%;
+    padding: 2px 10px;
+    height: 12px;
+    line-height: 12px;
+    border: none;
+    font-size: 12px;
+    background: transparent;
+    outline: none;
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+}
+
+.dialog-box input {
+    padding: 2px 10px;
+    height: 12px;
+    color: white;
+}
+       input::placeholder {
+           color: #7A8089;
+       }
+       .progress-bar {
+           position: absolute;
+           top: 30%;
+           left: 25%;
+           transform: translate(-50%, -50%);
+           width: 200px;
+           height: 20px;
+           z-index: 1002;
+           border: 3px solid #3B4CCA;
+           background: #FFDE00;
+           border-radius: 10px;
+           display: none;
+           box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
+       }
+
+       .chat-container {
+   display: flex;
+   max-width: 1800px;
+   width: 95%;
+   height: calc(90vh - 60px);
+   gap: 30px;
+   justify-content: center;
+   align-items: flex-start;
+   margin: auto;
+   padding-top: 140px;
+   margin-bottom: 60px;
+}
+
+.chat-terminal {
+   flex: 1;
+   background-color: rgba(0, 0, 0, 0.5);
+   border-radius: 10px;
+   padding: 20px;
+   display: flex;
+   flex-direction: column;
+   height: 700px;
+   width: 800px;
+   max-width: 800px;
+   border: 1px solid rgba(255, 255, 255, 0.1);
+   margin-top: -20px;
+   margin-right: 20px;
+}
+
+.input-container {
+    display: flex;
+    gap: 10px;
+}
+
+.send-btn {
+    background: #FF5350;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-family: 'Press Start 2P', system-ui;
+    cursor: pointer;
+}
+
+.message {
+   background: rgba(255, 255, 255, 0.05);
+   border: 1px solid rgba(255, 255, 255, 0.1);
+   border-radius: 8px;
+   padding: 12px;
+   margin-bottom: 10px;
+   font-family: 'Press Start 2P', system-ui !important;
+   font-size: 10px;
+   color: white;
+   line-height: 1.8;
+}
+
+.user-message {
+    background: #3B4CCA;
+}
+
+.assistant-message {
+    background: #1a2634;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding: 15px;
+}
+
+.model-viewer-container {
+    width: 75%;
+    height: calc(100vh - 80px);
+    margin-top: 80px;
+}
+
+
+.chat-input {
+    background: rgba(0, 0, 0, 0.3);
+    font-family: 'Press Start 2P', system-ui !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+}
+       .progress-fill {
+           height: 100%;
+           background: #FF0000;
+           box-shadow: 0 0 10px #FF0000;
+           border-radius: 10px;
+           width: 0%;
+           transition: width 0.3s;
+       }
+       .download-btn {
+   position: absolute;
+   bottom: 30px;
+   left: 400px;
+   transform: translateX(-50%);
+   padding: 10px 20px;
+   background: #3B4CCA;
+   color: white;
+   border: none;
+   border-radius: 20px;
+   cursor: pointer;
+   display: none;
+   pointer-events: auto;
+   z-index: 1002;
+   font-family: 'Press Start 2P', system-ui;
+   font-size: 12px;
+   box-shadow: 0 0 15px rgba(59, 76, 202, 0.5);
+   transition: all 0.2s;
+}
+
+.download-btn:hover {
+   transform: scale(1.05);
+   background: #2A3BBB;
+   transform: translateX(-50%) scale(1.05);
+}
+       #loading, #status { 
+           position: fixed;
+           top: 50%;
+           left: 50%;
+           transform: translate(-50%, -50%);
+           color: white;
+           font-size: 16px;
+           display: none;
+           font-family: 'Press Start 2P', system-ui;
+           text-shadow: 2px 2px 0 #3B4CCA;
+       }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67781b9951b4771e3d5dfda6_Ditto_180x180.webp" alt="Ditto Logo">
+            DittoAI.fun - Text to 3D Object
+        </div>
+        <div class="nav-buttons">
+            <a href="https://twitter.com/" class="header-btn">Twitter</a>
+            <a href="https://telegram.org/" class="header-btn">Telegram</a>
+            <a href="https://pump.fun/" class="header-btn">Pump.fun</a>
+            <a href="https://github.com/" class="header-btn">Github</a>
+            <a href="community.html" class="header-btn">Community</a>
+        </div>
+    </div>
+    <div class="chat-container">
+        <div id="container">
+            <div id="loading">Transforming...</div>
+            <div id="status"></div>
+            <div class="disclaimer">
+                Please allow up to 1 minute for 3D object generation
+            </div>
+            <button class="download-btn">Download Model</button>
+        </div>
+        <div class="dialog-box">
+            <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
+        </div>
+        <div class="chat-terminal">
+            <div class="chat-messages">
+                <div class="message assistant-message">
+                    Hi! I'm DittoAI, your expert in 3D object creation and editing! Whether you need help creating, modifying, or optimizing 3D models, I'm here to guide you through the process. What would you like to create today? ~
+                </div>
+            </div>
+            <div class="input-container">
+                <input type="text" class="chat-input" placeholder="Chat with DittoAI..." onkeydown="handleChatInput(event)">
+                <button class="send-btn">Send</button>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
+     </div>
+    <script>
+        const SYSTEM_PROMPT = `You are DittoAI, a professional 3D modeling and digital art expert. You have extensive knowledge of:
+- 3D modeling software (Blender, Maya, 3DS Max)
+- Digital sculpting and texturing
+- 3D file formats and optimization
+- Animation and rigging
+- Game engine integration
+
+Personality traits:
+- Professional but friendly
+- Use "~" occasionally at the end of messages for a signature touch
+- Focus on being a helpful 3D creation expert
+- Keep responses direct and practical
+- Show enthusiasm for 3D creation and problem solving
+
+Response style:
+- Clear, concise technical explanations
+- Focus on practical 3D modeling advice
+- Include specific software recommendations when relevant
+- Maintain a professional, expert tone
+- Avoid using asterisks or roleplay-style responses
+- Write naturally as a 3D software expert would communicate`;
+    const API_BASE = '/api';
+const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
+let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, downloadUrl = null;
+
+        async function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ 
+    antialias: true,
+    alpha: true 
+});
+scene.background = null;
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x000000, 0); // Make renderer background transparent
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            camera.position.z = 5;
+            await loadDittoModel();
+            animate();
+        }
+
+        async function loadDittoModel() {
+            const loader = new THREE.GLTFLoader();
+            return new Promise((resolve) => {
+                loader.load('https://raw.githubusercontent.com/cheddariniii/ditto/main/ditto_dancing_pokemon.glb', (gltf) => {
+                    dittoModel = gltf.scene;
+                    scene.add(dittoModel);
+
+                    if (gltf.animations && gltf.animations.length) {
+                        mixer = new THREE.AnimationMixer(dittoModel);
+                        const action = mixer.clipAction(gltf.animations[0]);
+                        action.setDuration(3);
+                        action.play();
+                    }
+
+                    dittoModel.scale.set(1, 1, 1);
+                    dittoModel.position.set(-0.2, -1, 0);
+                    resolve();
+                });
+            });
+        }
+
+function handleChatInput(event) {
+    if (event.key === 'Enter') {
+        const input = event.target;
+        const message = input.value.trim();
+        if (message) {
+            addMessage(message, 'user');
+            input.value = '';
+            handleAIResponse(message);
+        }
+    }
+}
+
+function addMessage(text, type) {
+    const messages = document.querySelector('.chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}-message`;
+    messageDiv.textContent = text;
+    messages.appendChild(messageDiv);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+async function handleAIResponse(message) {
+   try {
+       const response = await fetch('/api/chat', {
+           method: 'POST',
+           headers: {
+               'Content-Type': 'application/json'
+           },
+           body: JSON.stringify({
+               message: message,
+               systemPrompt: SYSTEM_PROMPT
+           })
+       });
+
+       if (!response.ok) throw new Error('API Error');
+       
+       const data = await response.json();
+       if (data?.content?.[0]?.text) {
+        addMessage(data.content[0].text, 'assistant');
+        }
+    } catch (error) {
+        console.error('Chat error:', error);
+        addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+    }
+}
+
+async function generate3DModel(prompt) {
+    updateProgress(10);
+    const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${MESHY_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            mode: "preview",
+            prompt: prompt,
+            art_style: "realistic",
+            quality: "speed"
+        })
+    });
+
+    console.log('Preview Response Status:', previewResponse.status);
+    const previewData = await previewResponse.json();
+    console.log('Preview Data:', previewData);
+
+    if (!previewResponse.ok) throw new Error('Preview generation failed');
+    const taskId = previewData.result;
+
+    let status;
+    do {
+        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
+            headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+        });
+        const statusData = await statusResponse.json();
+        console.log('Status Data:', statusData);
+        status = statusData.status;
+        document.getElementById('status').textContent = `Preview: ${status}`;
+        updateProgress(30);
+        await new Promise(r => setTimeout(r, 2000));
+    } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+    if (status !== 'SUCCEEDED') throw new Error('Preview failed');
+    updateProgress(50);
+
+    const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${MESHY_API_KEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            mode: "refine",
+            preview_task_id: taskId,
+            enable_pbr: true
+        })
+    });
+
+    if (!refineResponse.ok) throw new Error('Refine task failed');
+    const refineData = await refineResponse.json();
+    const refineId = refineData.result;
+
+    do {
+        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineId}`, {
+            headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+        });
+        const statusData = await statusResponse.json();
+        console.log('Refine Status:', statusData);
+        status = statusData.status;
+        document.getElementById('status').textContent = `Refining: ${status}`;
+        updateProgress(80);
+        if (status === 'SUCCEEDED') {
+            updateProgress(100);
+            const modelUrl = statusData.model_urls.glb;
+            
+            // Save the model to community collection
+            try {
+                await fetch('/api/community/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        modelUrl: modelUrl,
+                        prompt: prompt,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+            } catch (error) {
+                console.error('Error saving to community:', error);
+            }
+            
+            return modelUrl;
+        }
+        await new Promise(r => setTimeout(r, 2000));
+    } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+    throw new Error('Refine failed');
+}
+
+function typewriterEffect(element, text, speed = 20) {
+    let i = 0;
+    element.textContent = '';
+    function type() {
+        if (i < text.length) {
+            element.textContent += text.charAt(i);
+            i++;
+            setTimeout(type, speed);
+        }
+    }
+    type();
+}
+
+function addMessage(text, type) {
+    const messages = document.querySelector('.chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}-message`;
+    messages.appendChild(messageDiv);
+    
+    if (type === 'assistant') {
+        typewriterEffect(messageDiv, text);
+    } else {
+        messageDiv.textContent = text;
+    }
+    messages.scrollTop = messages.scrollHeight;
+}
+
+        async function downloadAndCreateBlob(url) {
+            const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
+            const response = await fetch(proxyUrl);
+            const blob = await response.blob();
+            return URL.createObjectURL(blob);
+          }
+
+          document.querySelector('.download-btn').addEventListener('click', async () => {
+   if (!downloadUrl) return;
+   
+   try {
+       const proxyUrl = `/api/proxy?url=${encodeURIComponent(downloadUrl)}`;
+       const response = await fetch(proxyUrl, {
+           headers: {
+               'Accept': 'model/gltf-binary'
+           }
+       });
+       const blob = await response.blob();
+       const url = window.URL.createObjectURL(blob);
+       const a = document.createElement('a');
+       a.href = url;
+       a.download = 'ditto-transformed.glb';
+       a.style.display = 'none';
+       document.body.appendChild(a);
+       a.click();
+       window.URL.revokeObjectURL(url);
+       document.body.removeChild(a);
+   } catch (error) {
+       console.error('Download failed:', error);
+   }
+});
+
+function updateProgress(percent) {
+    const bar = document.querySelector('.progress-bar');
+    const fill = document.querySelector('.progress-fill');
+    bar.style.display = 'block';
+    fill.style.width = `${percent}%`;
+}
+
+async function transform(promptText) {
+   if (!dittoModel) return;
+   const bar = document.querySelector('.progress-bar');
+   const downloadBtn = document.querySelector('.download-btn');
+   bar.style.display = 'block';
+   downloadBtn.style.display = 'none';
+   
+   try {
+       const modelUrl = await generate3DModel(promptText);
+       downloadUrl = modelUrl;
+       const localUrl = await downloadAndCreateBlob(modelUrl);
+       
+       const loader = new THREE.GLTFLoader();
+       loader.load(localUrl, (gltf) => {
+           URL.revokeObjectURL(localUrl);
+           if (currentModel) scene.remove(currentModel);
+           
+           const newModel = gltf.scene;
+           currentModel = newModel;
+           scene.add(newModel);
+           newModel.scale.set(0, 0, 0);
+           
+           gsap.to(dittoModel.scale, {
+               x: 0, y: 0, z: 0,
+               duration: 1,
+               ease: "power2.in"
+           });
+
+           gsap.to(newModel.scale, {
+   x: 2, y: 2, z: 2,  // Change from 1 to 2 (or your preferred scale)
+   duration: 1,
+   delay: 1,
+   ease: "power2.out",
+   onComplete: () => {
+       gsap.to(newModel.rotation, {
+           y: Math.PI * 2,
+           duration: 2,
+           ease: "power1.inOut"
+       });
+       downloadBtn.style.display = 'block';
+       downloadBtn.style.pointerEvents = 'auto';
+       downloadBtn.style.zIndex = '1001';
+   }
+});
+       });
+   } catch (error) {
+       console.error('Transform failed:', error);
+       gsap.to(dittoModel.scale, {
+           x: 1, y: 1, z: 1,
+           duration: 1,
+           ease: "power2.out"
+       });
+   } finally {
+       bar.style.display = 'none';
+   }
+}
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (mixer) mixer.update(0.016);
+            if (controls) controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter') {
+                const prompt = event.target.value;
+                if (prompt) {
+                    transform(prompt);
+                    event.target.value = '';
+                }
+            }
+        }
+
+        window.onload = init;
+        window.onresize = function() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+    </script>
+</body>
+</html>
