@@ -1,51 +1,8 @@
 const { MongoClient } = require('mongodb');
 
-// Initialize MongoDB connection
-let cachedDb = null;
-
-async function connectToDatabase(uri) {
-    if (cachedDb) return cachedDb;
-
-    const client = await MongoClient.connect(uri);
-    const db = client.db('dittoai');
-    cachedDb = db;
-    return db;
-}
-
-// Add route handler for community endpoints
-async function handleCommunityRoutes(req, res) {
-    try {
-        const db = await connectToDatabase(process.env.MONGODB_URI);
-
-        if (req.method === 'POST' && req.url === '/api/community/add') {
-            const { modelUrl, prompt, timestamp } = req.body;
-            
-            const result = await db.collection('models').insertOne({
-                modelUrl,
-                prompt,
-                timestamp,
-                createdAt: new Date()
-            });
-
-            return res.json({ success: true, id: result.insertedId });
-        } 
-        else if (req.method === 'GET' && req.url === '/api/community/models') {
-            const models = await db.collection('models')
-                .find()
-                .sort({ createdAt: -1 })
-                .toArray();
-
-            return res.json(models);
-        }
-        return false; // Not a community route
-    } catch (error) {
-        console.error('Community API Error:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
-        return true; // Error was handled
-    }
-}
-
 export default async function handler(req, res) {
+    const communityHandler = require('./community').default;
+    
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -57,9 +14,10 @@ export default async function handler(req, res) {
         return;
     }
 
-    // Try community routes first
-    const handledByCommunity = await handleCommunityRoutes(req, res);
-    if (handledByCommunity) return;
+    // Handle community routes
+    if (req.url.startsWith('/api/community')) {
+        return communityHandler(req, res);
+    }
 
     // Handle proxy requests
     if (req.url.startsWith('/api/proxy')) {
