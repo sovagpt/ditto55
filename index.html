@@ -25,6 +25,9 @@
    margin-top: -20px;
    margin-bottom: 0;
    border: 1px solid rgba(255, 255, 255, 0.1);
+   display: flex;
+   justify-content: center;
+   align-items: center;
 }
        .header {
            background: rgba(255, 255, 255, 0.2);
@@ -50,16 +53,23 @@
            gap: 15px;
        }
        .disclaimer {
-        position: absolute; 
-        bottom: -30px;
-        width: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    color: white;
-    font-family: 'Press Start 2P', system-ui;
-    font-size: 10px;
-    text-shadow: 1px 1px 0 #3B4CCA;
-    text-align: center;
+   position: absolute;
+   bottom: 50px;
+   left: 50%;
+   transform: translateX(-50%);
+   color: white;
+   font-family: 'Press Start 2P', system-ui;
+   font-size: 10px;
+   text-shadow: 1px 1px 0 #3B4CCA;
+   text-align: center;
+   width: 100%;
+}
+
+.ditto-model {
+   position: absolute;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
 }
        .header-btn {
            background: #FF5350;
@@ -80,16 +90,19 @@
        .dialog-box {
    position: absolute;
    bottom: -60px;
-   left: 0;
-   width: 100%;
-   border-radius: 0 0 10px 10px;
+   left: 50%;
+   transform: translateX(-50%);
+   width: 500px;
    background: rgba(0, 0, 0, 0.7);
+   border-radius: 10px;
    border: 1px solid rgba(255, 255, 255, 0.1);
    padding: 20px;
    z-index: 1000;
    font-family: 'Press Start 2P', system-ui;
    margin: 0;
+   box-shadow: 0 0 20px rgba(59, 76, 202, 0.5);
 }
+
        input {
            width: 100%;
            padding: 10px;
@@ -345,7 +358,7 @@ scene.background = null;
                     }
 
                     dittoModel.scale.set(1, 1, 1);
-                    dittoModel.position.set(0, -1, 0);
+                    dittoModel.position.set(-2, -1, 0);
                     resolve();
                 });
             });
