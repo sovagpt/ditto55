@@ -62,6 +62,19 @@
             transform: scale(1.05);
             background: #8A4589;
         }
+
+        .model-info {
+            position: fixed;
+            background: rgba(166, 100, 165, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Press Start 2P', system-ui;
+            font-size: 12px;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
@@ -70,12 +83,19 @@
         <div class="header-btn" id="modelCount">Loading models...</div>
     </div>
     <div class="loading">Loading Community Creations...</div>
+    <div class="model-info" id="modelInfo"></div>
     <script>
         let scene, camera, renderer, controls;
         const models = [];
         const modelScale = 0.5;
+        const API_BASE_URL = window.location.origin;
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let hoveredModel = null;
 
         async function init() {
+            console.log('Initializing scene...');
             // Scene setup
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0xffffff);
@@ -137,120 +157,117 @@
             animate();
         }
 
-        // Add this to your community.html
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-let hoveredModel = null;
-const infoElement = document.createElement('div');
-infoElement.style.cssText = `
-    position: fixed;
-    background: rgba(166, 100, 165, 0.9);
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    font-family: 'Press Start 2P', system-ui;
-    font-size: 12px;
-    pointer-events: none;
-    display: none;
-    z-index: 1000;
-`;
-document.body.appendChild(infoElement);
-
-window.addEventListener('mousemove', (event) => {
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(scene.children, true);
-    
-    let foundModel = null;
-    for (const intersect of intersects) {
-        let obj = intersect.object;
-        while (obj.parent && !obj.userData.prompt) {
-            obj = obj.parent;
-        }
-        if (obj.userData.prompt) {
-            foundModel = obj;
-            break;
-        }
-    }
-    
-    if (foundModel !== hoveredModel) {
-        hoveredModel = foundModel;
-        if (hoveredModel) {
-            infoElement.style.display = 'block';
-            infoElement.innerHTML = `
-                Prompt: ${hoveredModel.userData.prompt}<br>
-                Created: ${hoveredModel.userData.created}
-            `;
-        } else {
-            infoElement.style.display = 'none';
-        }
-    }
-    
-    if (hoveredModel) {
-        infoElement.style.left = event.clientX + 20 + 'px';
-        infoElement.style.top = event.clientY + 'px';
-    }
-});
-
         async function loadCommunityModels() {
-    try {
-        // Fetch models from your API
-        const response = await fetch('/api/community/models');
-        const communityModels = await response.json();
-        
-        const loader = new THREE.GLTFLoader();
-        const loadPromises = communityModels.map(async (modelData, index) => {
             try {
-                const gltf = await new Promise((resolve, reject) => {
-                    loader.load(modelData.modelUrl,
-                        resolve,
-                        (progress) => {
-                            // You can add loading progress here if desired
-                            console.log(`Loading model ${index + 1}: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
-                        },
-                        reject
-                    );
+                console.log('Fetching models from:', `${API_BASE_URL}/api/community/models`);
+                const response = await fetch(`${API_BASE_URL}/api/community/models`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', response.status, errorText);
+                    document.querySelector('.loading').textContent = `Error: ${response.status} - Failed to load models`;
+                    return;
+                }
+
+                const communityModels = await response.json();
+                console.log('Received models data:', communityModels);
+
+                if (!Array.isArray(communityModels) || communityModels.length === 0) {
+                    console.log('No models found in response');
+                    document.querySelector('.loading').textContent = 'No models found';
+                    return;
+                }
+
+                const loader = new THREE.GLTFLoader();
+                const loadPromises = communityModels.map(async (modelData, index) => {
+                    try {
+                        console.log(`Loading model ${index + 1}:`, modelData.modelUrl);
+                        const gltf = await new Promise((resolve, reject) => {
+                            loader.load(modelData.modelUrl,
+                                resolve,
+                                (progress) => {
+                                    console.log(`Loading model ${index + 1}: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
+                                },
+                                (error) => {
+                                    console.error(`Error loading model ${index + 1}:`, error);
+                                    reject(error);
+                                }
+                            );
+                        });
+
+                        const model = gltf.scene;
+                        model.scale.set(modelScale, modelScale, modelScale);
+                        
+                        const radius = 8 + Math.floor(index / 8) * 6;
+                        const angle = (index % 8) * Math.PI * 0.25;
+                        model.position.x = Math.cos(angle) * radius;
+                        model.position.z = Math.sin(angle) * radius;
+                        model.position.y = -2;
+                        
+                        model.userData = {
+                            prompt: modelData.prompt,
+                            created: new Date(modelData.timestamp).toLocaleDateString()
+                        };
+                        
+                        scene.add(model);
+                        models.push(model);
+
+                        document.getElementById('modelCount').textContent = `${models.length} Creations`;
+                    } catch (error) {
+                        console.error('Error loading individual model:', error);
+                    }
                 });
 
-                const model = gltf.scene;
-                model.scale.set(modelScale, modelScale, modelScale);
-                
-                // Create info display for each model
-                const radius = 8 + Math.floor(index / 8) * 6; // Multiple circles as collection grows
-                const angle = (index % 8) * Math.PI * 0.25; // 8 models per circle
-                model.position.x = Math.cos(angle) * radius;
-                model.position.z = Math.sin(angle) * radius;
-                model.position.y = -2;
-                
-                // Add hover info
-                model.userData = {
-                    prompt: modelData.prompt,
-                    created: new Date(modelData.timestamp).toLocaleDateString()
-                };
-                
-                scene.add(model);
-                models.push(model);
-
-                document.getElementById('modelCount').textContent = `${models.length} Creations`;
+                await Promise.all(loadPromises);
+                console.log('All models loaded successfully');
             } catch (error) {
-                console.error('Error loading model:', error);
+                console.error('Error in loadCommunityModels:', error);
+                document.querySelector('.loading').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            
+            let foundModel = null;
+            for (const intersect of intersects) {
+                let obj = intersect.object;
+                while (obj.parent && !obj.userData.prompt) {
+                    obj = obj.parent;
+                }
+                if (obj.userData.prompt) {
+                    foundModel = obj;
+                    break;
+                }
+            }
+            
+            const modelInfo = document.getElementById('modelInfo');
+            if (foundModel !== hoveredModel) {
+                hoveredModel = foundModel;
+                if (hoveredModel) {
+                    modelInfo.style.display = 'block';
+                    modelInfo.innerHTML = `
+                        Prompt: ${hoveredModel.userData.prompt}<br>
+                        Created: ${hoveredModel.userData.created}
+                    `;
+                } else {
+                    modelInfo.style.display = 'none';
+                }
+            }
+            
+            if (hoveredModel) {
+                modelInfo.style.left = event.clientX + 20 + 'px';
+                modelInfo.style.top = event.clientY + 'px';
             }
         });
-
-        await Promise.all(loadPromises);
-    } catch (error) {
-        console.error('Error fetching community models:', error);
-        document.querySelector('.loading').textContent = 'Error loading community creations';
-    }
-}
 
         function animate() {
             requestAnimationFrame(animate);
             
-            // Rotate models
             models.forEach(model => {
                 model.rotation.y += 0.005;
             });
@@ -265,7 +282,11 @@ window.addEventListener('mousemove', (event) => {
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        init();
+        console.log('Starting initialization...');
+        init().catch(error => {
+            console.error('Initialization error:', error);
+            document.querySelector('.loading').textContent = 'Failed to initialize scene';
+        });
     </script>
 </body>
 </html>
