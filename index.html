@@ -9,136 +9,24 @@
     <style>
         body { margin: 0; background: #1a1a1a; }
         #container { width: 100vw; height: 100vh; }
-        #chat-container {
-            position: fixed;
-            right: 20px;
-            top: 20px;
-            width: 300px;
-            height: 400px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-        .message {
-            margin: 5px;
-            padding: 8px 12px;
-            border-radius: 15px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        .user-message {
-            background: #007bff;
-            color: white;
-            margin-left: auto;
-        }
-        .assistant-message {
-            background: #e9ecef;
-            color: black;
-            margin-right: auto;
-        }
-        #chat-input {
-            border-top: 1px solid #ddd;
-            padding: 10px;
-            display: flex;
-        }
-        #chat-input input {
-            flex-grow: 1;
-            margin-right: 10px;
-        }
-        #chat-input button {
-            padding: 5px 15px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
         .dialog-box {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
+            position: fixed; bottom: 40px; left: 50%;
             transform: translateX(-50%);
-            width: 80%;
-            max-width: 500px;
-            background: white;
-            border: 4px solid #333;
-            border-radius: 10px;
-            padding: 20px;
+            width: 80%; max-width: 500px;
+            background: white; border: 4px solid #333;
+            border-radius: 10px; padding: 20px;
             z-index: 1000;
         }
         input {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            font-size: 14px;
-            background: transparent;
-            outline: none;
-        }
-        #chat-terminal {
-            position: fixed;
-            bottom: 100px;
-            left: 20px;
-            width: 300px;
-            height: 400px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #333;
-            border-radius: 5px;
-            display: none;
-            flex-direction: column;
-            z-index: 1000;
-        }
-        #chat-button {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            padding: 10px 20px;
-            background: #333;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-        #chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 10px;
-            color: #0f0;
-            font-family: monospace;
-        }
-        .message {
-            margin: 5px 0;
-            color: #0f0;
-        }
-        .user-message { color: #0f0; }
-        .assistant-message { color: #0ff; }
-        #chat-input {
-            border-top: 1px solid #333;
-            padding: 10px;
-            display: flex;
-            gap: 10px;
-        }
-        #chat-terminal input {
-            flex-grow: 1;
-            background: rgba(0, 0, 0, 0.5);
-            color: #0f0;
-            border: 1px solid #333;
-            border-radius: 3px;
+            width: 100%; padding: 10px;
+            border: none; font-size: 14px;
+            background: transparent; outline: none;
         }
         #loading, #status { 
             position: fixed;
-            top: 50%;
-            left: 50%;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            color: white;
-            font-size: 20px;
+            color: white; font-size: 20px;
             display: none;
         }
     </style>
@@ -147,38 +35,13 @@
     <div id="container"></div>
     <div id="loading">Transforming...</div>
     <div id="status"></div>
-    <button id="chat-button" onclick="toggleChat()">Chat</button>
-    <div id="chat-terminal">
-        <div id="chat-messages"></div>
-        <div id="chat-input">
-            <input type="text" placeholder="Type here..." onkeydown="handleChatKeyDown(event)">
-        </div>
-    </div>
-    <button id="chat-button" onclick="toggleChat()">Chat</button>
-    <div id="chat-terminal">
-        <div id="chat-messages"></div>
-        <div id="chat-input">
-            <input type="text" placeholder="Type your message..." onkeydown="handleChatKeyDown(event)">
-        </div>
-    </div>
-    <div id="chat-container">
-        <div id="chat-messages">
-            <div class="message assistant-message">Hi! I'll help you transform Ditto. What would you like to create?</div>
-        </div>
-        <div id="chat-input">
-            <input type="text" placeholder="Chat with assistant...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
     <div class="dialog-box">
         <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
     </div>
 
     <script>
         let scene, camera, renderer, dittoModel, mixer, controls;
-
-        // System prompt for chat
-        const SYSTEM_PROMPT = `You are a friendly AI assistant helping with 3D model transformations. Keep responses brief and supportive.`;
+        const MESHY_API_KEY = 'msy_GmbPmk011kn3WKuvzucDum9px0ItmxQQ33tT';
 
         async function init() {
             scene = new THREE.Scene();
@@ -222,55 +85,11 @@
             });
         }
 
-        function addMessage(text, isUser) {
-            const messagesDiv = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
-            messageDiv.textContent = text;
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        async function sendMessage() {
-            const input = document.querySelector('#chat-input input');
-            const message = input.value.trim();
-            
-            if (message) {
-                addMessage(message, true);
-                input.value = '';
-
-                try {
-                    const response = await fetch('/api/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            message: message,
-                            systemPrompt: SYSTEM_PROMPT
-                        })
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`API error: ${response.status}`);
-                    }
-
-                    const data = await response.json();
-                    if (data.content && data.content[0] && data.content[0].text) {
-                        addMessage(data.content[0].text, false);
-                    }
-                } catch (error) {
-                    console.error('Chat error:', error);
-                    addMessage('Sorry, I encountered an error. Please try again.', false);
-                }
-            }
-        }
-
         async function generate3DModel(prompt) {
             const previewResponse = await fetch('https://api.meshy.ai/openapi/v2/text-to-3d', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${process.env.MESHY_API_KEY}`,
+                    'Authorization': `Bearer ${MESHY_API_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -287,7 +106,7 @@
             let status;
             do {
                 const statusResponse = await fetch(`https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
-                    headers: { 'Authorization': `Bearer ${process.env.MESHY_API_KEY}` }
+                    headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
                 });
                 const statusData = await statusResponse.json();
                 status = statusData.status;
@@ -300,7 +119,7 @@
             const refineResponse = await fetch('https://api.meshy.ai/openapi/v2/text-to-3d', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${process.env.MESHY_API_KEY}`,
+                    'Authorization': `Bearer ${MESHY_API_KEY}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -316,7 +135,7 @@
 
             do {
                 const statusResponse = await fetch(`https://api.meshy.ai/openapi/v2/text-to-3d/${refineId}`, {
-                    headers: { 'Authorization': `Bearer ${process.env.MESHY_API_KEY}` }
+                    headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
                 });
                 const statusData = await statusResponse.json();
                 status = statusData.status;
@@ -333,7 +152,7 @@
         async function downloadAndCreateBlob(url) {
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `Bearer ${process.env.MESHY_API_KEY}`
+                    'Authorization': `Bearer ${MESHY_API_KEY}`
                 }
             });
             const blob = await response.blob();
@@ -374,7 +193,6 @@
 
             } catch (error) {
                 console.error('Transform failed:', error);
-                addMessage(`Sorry, I couldn't transform into "${promptText}". Please try again.`, false);
                 gsap.to(dittoModel.scale, {
                     x: 1, y: 1, z: 1,
                     duration: 1,
@@ -403,65 +221,12 @@
             }
         }
 
-        document.querySelector('#chat-input input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
         window.onload = init;
-
-
         window.onresize = function() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
-
-        function toggleChat() {
-            const terminal = document.getElementById('chat-terminal');
-            terminal.style.display = terminal.style.display === 'none' ? 'flex' : 'none';
-        }
-
-        async function sendMessage(message) {
-            const messagesDiv = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'message user-message';
-            messageDiv.textContent = '> ' + message;
-            messagesDiv.appendChild(messageDiv);
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message, systemPrompt: SYSTEM_PROMPT })
-                });
-
-                const data = await response.json();
-                const replyDiv = document.createElement('div');
-                replyDiv.className = 'message assistant-message';
-                replyDiv.textContent = data.content[0].text;
-                messagesDiv.appendChild(replyDiv);
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
-            } catch (error) {
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'message assistant-message';
-                errorDiv.textContent = 'Error: Could not send message';
-                messagesDiv.appendChild(errorDiv);
-            }
-        }
-
-        function handleChatKeyDown(event) {
-            if (event.key === 'Enter') {
-                const input = event.target;
-                const message = input.value.trim();
-                if (message) {
-                    sendMessage(message);
-                    input.value = '';
-                }
-            }
-        }
     </script>
 </body>
 </html>
