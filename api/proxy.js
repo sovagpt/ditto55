@@ -1,45 +1,38 @@
 export default async function handler(req, res) {
     const url = req.query.url;
     
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', '*'); 
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-    
     const fetchOptions = {
         method: req.method,
         headers: {
-            'Authorization': `Bearer ${process.env.MESHY_API_KEY}`,
-            'Accept': 'model/gltf-binary'
+            'Authorization': `Bearer ${process.env.MESHY_API_KEY}`
         }
     };
 
     if (req.method === 'POST') {
-        // Handle file uploads for image-to-3D
         if (req.headers['content-type']?.includes('multipart/form-data')) {
+            // For file uploads, pass through the raw body and headers
             fetchOptions.body = req.body;
             fetchOptions.headers['Content-Type'] = req.headers['content-type'];
         } else {
-            // Handle JSON requests for other transformations
+            // For JSON requests
             fetchOptions.headers['Content-Type'] = 'application/json';
+            fetchOptions.headers['Accept'] = 'application/json';
             fetchOptions.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
         }
     }
 
     try {
+        console.log('Proxy request to:', url);
         const response = await fetch(url, fetchOptions);
+        
         if (!response.ok) {
-            throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('Proxy error:', errorText);
+            throw new Error(`API request failed: ${response.status} ${errorText}`);
         }
 
         const contentType = response.headers.get('content-type');
-        res.setHeader('Content-Type', contentType || 'model/gltf-binary');
+        res.setHeader('Content-Type', contentType || 'application/json');
         
         if (contentType?.includes('application/json')) {
             const data = await response.json();
