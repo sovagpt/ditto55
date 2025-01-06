@@ -76,6 +76,7 @@
             z-index: 1000;
             max-width: 300px;
             word-wrap: break-word;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -203,20 +204,22 @@
                         });
 
                         const model = gltf.scene;
+                        
+                        // Apply userData to model and all its children
+                        model.traverse((child) => {
+                            child.userData = {
+                                prompt: modelData.prompt,
+                                created: new Date(modelData.timestamp).toLocaleDateString()
+                            };
+                        });
+
                         model.scale.set(modelScale, modelScale, modelScale);
                         
-                        // Position models in a circle
-                        const radius = 8 + Math.floor(i / 8) * 6; // Multiple circles as collection grows
-                        const angle = (i % 8) * Math.PI * 0.25; // 8 models per circle
+                        const radius = 8 + Math.floor(i / 8) * 6;
+                        const angle = (i % 8) * Math.PI * 0.25;
                         model.position.x = Math.cos(angle) * radius;
                         model.position.z = Math.sin(angle) * radius;
                         model.position.y = -2;
-                        
-                        // Add user data for hover info
-                        model.userData = {
-                            prompt: modelData.prompt,
-                            created: new Date(modelData.timestamp).toLocaleDateString()
-                        };
                         
                         scene.add(model);
                         models.push(model);
@@ -239,14 +242,10 @@
             const intersects = raycaster.intersectObjects(scene.children, true);
             
             let foundModel = null;
-            for (const intersect of intersects) {
-                let obj = intersect.object;
-                while (obj.parent && !obj.userData.prompt) {
-                    obj = obj.parent;
-                }
-                if (obj.userData.prompt) {
-                    foundModel = obj;
-                    break;
+            if (intersects.length > 0) {
+                const intersectedObject = intersects[0].object;
+                if (intersectedObject.userData && intersectedObject.userData.prompt) {
+                    foundModel = intersectedObject;
                 }
             }
             
@@ -256,8 +255,8 @@
                 if (hoveredModel) {
                     modelInfo.style.display = 'block';
                     modelInfo.innerHTML = `
-                        Prompt: ${hoveredModel.userData.prompt}<br>
-                        Created: ${hoveredModel.userData.created}
+                        <div style="margin-bottom: 8px;">Prompt: ${hoveredModel.userData.prompt}</div>
+                        <div>Created: ${hoveredModel.userData.created}</div>
                     `;
                 } else {
                     modelInfo.style.display = 'none';
