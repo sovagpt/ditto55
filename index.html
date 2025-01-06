@@ -96,6 +96,13 @@
     <div id="container"></div>
     <div id="loading">Transforming...</div>
     <div id="status"></div>
+    <button id="chat-button" onclick="toggleChat()">Chat</button>
+    <div id="chat-terminal">
+        <div id="chat-messages"></div>
+        <div id="chat-input">
+            <input type="text" placeholder="Type your message..." onkeydown="handleChatKeyDown(event)">
+        </div>
+    </div>
     <div id="chat-container">
         <div id="chat-messages">
             <div class="message assistant-message">Hi! I'll help you transform Ditto. What would you like to create?</div>
@@ -352,6 +359,51 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
+
+        function toggleChat() {
+            const terminal = document.getElementById('chat-terminal');
+            terminal.style.display = terminal.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        async function sendMessage(message) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.textContent = '> ' + message;
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, systemPrompt: SYSTEM_PROMPT })
+                });
+
+                const data = await response.json();
+                const replyDiv = document.createElement('div');
+                replyDiv.className = 'message assistant-message';
+                replyDiv.textContent = data.content[0].text;
+                messagesDiv.appendChild(replyDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } catch (error) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message assistant-message';
+                errorDiv.textContent = 'Error: Could not send message';
+                messagesDiv.appendChild(errorDiv);
+            }
+        }
+
+        function handleChatKeyDown(event) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const message = input.value.trim();
+                if (message) {
+                    sendMessage(message);
+                    input.value = '';
+                }
+            }
+        }
     </script>
 </body>
 </html>
