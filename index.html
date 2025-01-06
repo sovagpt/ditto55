@@ -238,6 +238,12 @@
     <button class="download-btn">Download Model</button>
 
     <script>
+        const SYSTEM_PROMPT = `You are DittoAI, a helpful AI assistant that helps transform 3D models. You should:
+- Keep responses short and direct
+- Get straight to the point
+- Show enthusiasm but be brief
+- For simple questions, give simple answers`;
+
     const API_BASE = '/api';
 const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
 let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, downloadUrl = null;
