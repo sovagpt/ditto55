@@ -190,7 +190,7 @@ input {
    width: 95%;
    height: calc(90vh - 60px);
    gap: 30px;
-   justify-content: center;
+   justify-content: space-between; /* Change from center to space-between */
    align-items: flex-start;
    margin: auto;
    padding-top: 140px;
@@ -205,11 +205,11 @@ input {
    display: flex;
    flex-direction: column;
    height: 700px;
-   width: 800px;
-   max-width: 800px;
+   width: 400px;  /* Set a fixed width */
+   max-width: 400px; /* Match the fixed width */
    border: 1px solid rgba(255, 255, 255, 0.1);
    margin-top: -20px;
-   margin-right: 20px;
+   margin-left: auto; /* Add this to push it to the right */
 }
 
 .input-container {
@@ -571,21 +571,48 @@ async function imageToModel(file) {
     
     try {
         const formData = new FormData();
-        formData.append('image', file);
+        formData.append('file', file); // Change 'image' to 'file'
+        formData.append('type', 'image'); // Add this line
         
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/image-to-3d`, {
+        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/image-to-3d`, { // Update the endpoint
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${MESHY_API_KEY}`
+                // Remove Content-Type header to let browser set it with boundary
             },
             body: formData
         });
 
-        if (!response.ok) throw new Error('Image conversion failed');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error:', errorText);
+            throw new Error('Image conversion failed');
+        }
+
         const data = await response.json();
-        await checkTaskStatus(data.task_id, 'Converting');
-        downloadUrl = data.model_url;
-        await loadNewModel(downloadUrl);
+        console.log('Image to 3D response:', data);
+        
+        // Handle task status checking
+        const taskId = data.result;
+        let status;
+        do {
+            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/image-to-3d/${taskId}`, {
+                headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+            });
+            const statusData = await statusResponse.json();
+            console.log('Status:', statusData);
+            status = statusData.status;
+            document.getElementById('status').textContent = `Converting: ${status}`;
+            updateProgress(status === 'SUCCEEDED' ? 100 : 50);
+            if (status === 'SUCCEEDED') {
+                downloadUrl = statusData.model_urls.glb;
+                await loadNewModel(downloadUrl);
+                return;
+            }
+            await new Promise(r => setTimeout(r, 2000));
+        } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+        throw new Error('Conversion failed or timed out');
     } catch (error) {
         console.error('Image to 3D error:', error);
         document.getElementById('status').textContent = 'Image conversion failed';
