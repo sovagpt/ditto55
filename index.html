@@ -15,15 +15,15 @@
            background-size: cover;
        }
        #container {
-    width: 70%;
-    height: calc(100vh - 100px);
-    margin-top: 80px;
-    position: fixed;
-    left: 0;
+    width: 800px;
+    height: 740px;
+    background-color: rgba(0, 0, 0, 0.7);
     border-radius: 10px;
-    margin-left: 15px;
-    background: rgba(17, 34, 51, 0.3);
-    backdrop-filter: blur(8px);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    margin-top: -20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
        .header {
            background: rgba(255, 255, 255, 0.2);
@@ -117,19 +117,32 @@
            box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
        }
 
+       .chat-container {
+    display: flex;
+    max-width: 1800px;
+    width: 95%;
+    height: calc(90vh - 60px);
+    gap: 30px;
+    justify-content: center;
+    align-items: flex-start;
+    margin: auto;
+    padding-top: 3rem;
+    margin-bottom: 60px;
+}
+
        .chat-terminal {
-    position: fixed;
-    right: 20px;
-    top: 80px;
-    width: calc(35% - 40px);
-    height: calc(100vh - 140px);
-    background: rgba(17, 34, 51, 0.95);
-    border-radius: 0 10px 10px 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-left: none;
+    flex: 1;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 16px;
     padding: 20px;
     display: flex;
     flex-direction: column;
+    height: 740px;
+    width: 800px;
+    max-width: 800px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: -20px;
+    margin-right: 20px;
 }
 
 .message {
@@ -149,12 +162,10 @@
 }
 
 .chat-messages {
-    flex: 1;
+    flex-grow: 1;
     overflow-y: auto;
-    margin-bottom: 15px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 15px;
 }
 
 .model-viewer-container {
@@ -170,6 +181,7 @@
     border-radius: 8px;
     padding: 12px;
     color: white;
+    font-family: 'Quicksand', sans-serif;
 }
        .progress-fill {
            height: 100%;
@@ -225,24 +237,29 @@
             <a href="#" class="header-btn">Community</a>
         </div>
     </div>
-    <div class="chat-terminal">
-    <div class="chat-messages"></div>
-    <input type="text" class="chat-input" placeholder="Ask DittoAI..." onkeydown="handleChatInput(event)">
-</div>
-    <div id="container"></div>
-    <div id="loading">Transforming...</div>
-    <div id="status"></div>
-    <div class="disclaimer">
-        Please allow up to 1 minute for 3D object generation due to high demand
+    <div class="chat-container">
+        <div id="container">
+            <div id="loading">Transforming...</div>
+            <div id="status"></div>
+            <div class="disclaimer">
+                Please allow up to 1 minute for 3D object generation
+            </div>
+        </div>
+        <div class="chat-terminal">
+            <div class="chat-messages">
+                <div class="message assistant-message">
+                    Hi! I'm DittoAI, ready to transform into anything you can imagine! What should I become? ~
+                </div>
+            </div>
+            <div class="input-container">
+                <input type="text" class="chat-input" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
+            </div>
+            <button class="download-btn">Download Model</button>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+        </div>
     </div>
-    <div class="dialog-box">
-        <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
-    </div>
-    <div class="progress-bar">
-        <div class="progress-fill"></div>
-    </div>
-    <button class="download-btn">Download Model</button>
-
     <script>
         const SYSTEM_PROMPT = `You are DittoAI, based on the Pokemon Ditto. You're a shapeshifting expert in 3D modeling and digital art. You have extensive knowledge of:
 - 3D modeling software (Blender, Maya, 3DS Max)
@@ -567,14 +584,16 @@ async function transform(promptText) {
         }
 
         function handleKeyDown(event) {
-            if (event.key === 'Enter') {
-                const prompt = event.target.value;
-                if (prompt) {
-                    transform(prompt);
-                    event.target.value = '';
-                }
-            }
+    if (event.key === 'Enter') {
+        const prompt = event.target.value;
+        if (prompt) {
+            addMessage(prompt, 'user');
+            transform(prompt);
+            handleAIResponse(prompt);
+            event.target.value = '';
         }
+    }
+}
 
         window.onload = init;
         window.onresize = function() {
