@@ -158,73 +158,53 @@
         }
 
         async function loadCommunityModels() {
+    try {
+        const response = await fetch('/api/community/models');
+        if (!response.ok) {
+            console.error('Failed to fetch models:', response.status);
+            return;
+        }
+
+        const communityModels = await response.json();
+        console.log('Received models data:', communityModels);
+        
+        const loader = new THREE.GLTFLoader();
+
+        for (let i = 0; i < communityModels.length; i++) {
+            const modelData = communityModels[i];
             try {
-                console.log('Fetching models from:', `${API_BASE_URL}/api/community/models`);
-                const response = await fetch(`${API_BASE_URL}/api/community/models`);
+                // Use proxy endpoint to load the model
+                const proxyUrl = `/api/proxy?url=${encodeURIComponent(modelData.modelUrl)}`;
+                console.log(`Loading model ${i + 1} through proxy:`, proxyUrl);
                 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('API Error:', response.status, errorText);
-                    document.querySelector('.loading').textContent = `Error: ${response.status} - Failed to load models`;
-                    return;
-                }
-
-                const communityModels = await response.json();
-                console.log('Received models data:', communityModels);
-
-                if (!Array.isArray(communityModels) || communityModels.length === 0) {
-                    console.log('No models found in response');
-                    document.querySelector('.loading').textContent = 'No models found';
-                    return;
-                }
-
-                const loader = new THREE.GLTFLoader();
-                const loadPromises = communityModels.map(async (modelData, index) => {
-                    try {
-                        console.log(`Loading model ${index + 1}:`, modelData.modelUrl);
-                        const gltf = await new Promise((resolve, reject) => {
-                            loader.load(modelData.modelUrl,
-                                resolve,
-                                (progress) => {
-                                    console.log(`Loading model ${index + 1}: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
-                                },
-                                (error) => {
-                                    console.error(`Error loading model ${index + 1}:`, error);
-                                    reject(error);
-                                }
-                            );
-                        });
-
-                        const model = gltf.scene;
-                        model.scale.set(modelScale, modelScale, modelScale);
-                        
-                        const radius = 8 + Math.floor(index / 8) * 6;
-                        const angle = (index % 8) * Math.PI * 0.25;
-                        model.position.x = Math.cos(angle) * radius;
-                        model.position.z = Math.sin(angle) * radius;
-                        model.position.y = -2;
-                        
-                        model.userData = {
-                            prompt: modelData.prompt,
-                            created: new Date(modelData.timestamp).toLocaleDateString()
-                        };
-                        
-                        scene.add(model);
-                        models.push(model);
-
-                        document.getElementById('modelCount').textContent = `${models.length} Creations`;
-                    } catch (error) {
-                        console.error('Error loading individual model:', error);
-                    }
+                const gltf = await new Promise((resolve, reject) => {
+                    loader.load(proxyUrl, resolve, 
+                        (progress) => {
+                            console.log(`Loading progress: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
+                        }, 
+                        reject
+                    );
                 });
 
-                await Promise.all(loadPromises);
-                console.log('All models loaded successfully');
+                const model = gltf.scene;
+                model.scale.set(modelScale, modelScale, modelScale);
+                
+                const radius = 8;
+                const angle = (i / communityModels.length) * Math.PI * 2;
+                model.position.x = Math.cos(angle) * radius;
+                model.position.z = Math.sin(angle) * radius;
+                model.position.y = -2;
+                
+                scene.add(model);
+                models.push(model);
             } catch (error) {
-                console.error('Error in loadCommunityModels:', error);
-                document.querySelector('.loading').textContent = `Error: ${error.message}`;
+                console.error(`Error loading model ${i + 1}:`, error);
             }
         }
+    } catch (error) {
+        console.error('Error in loadCommunityModels:', error);
+    }
+}
 
         window.addEventListener('mousemove', (event) => {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
