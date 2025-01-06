@@ -14,21 +14,23 @@
            background: url('https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/677815b17d293c5b2b9269c8_forest.png') no-repeat center center fixed; 
            background-size: cover;
        }
+
        #container {
-   width: 800px;
-   height: 740px;
-   background-color: rgba(0, 0, 0, 0.7);
-   border-radius: 10px 10px 0 0;
-   position: relative;
-   overflow: hidden;
-   transition: all 0.3s ease;
-   margin-top: -20px;
-   margin-bottom: 0;
-   border: 1px solid rgba(255, 255, 255, 0.1);
-   display: flex;
-   justify-content: center;
-   align-items: center;
-}
+           width: 800px;
+           height: 740px;
+           background-color: rgba(0, 0, 0, 0.7);
+           border-radius: 10px 10px 0 0;
+           position: relative;
+           overflow: hidden;
+           transition: all 0.3s ease;
+           margin-top: -20px;
+           margin-bottom: 0;
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           display: flex;
+           justify-content: center;
+           align-items: center;
+       }
+
        .header {
            background: rgba(255, 255, 255, 0.2);
            display: flex;
@@ -42,79 +44,28 @@
            z-index: 1000;
            backdrop-filter: blur(5px);
        }
-       .logo {
-    color: white;
-    font-family: 'Press Start 2P', system-ui;
-    font-size: 18px;
-    text-shadow: 2px 2px 0 #3B4CCA;
-    display: flex;  /* Add this */
-    align-items: center;  /* Add this */
-    gap: 12px;  /* Add this for spacing between logo and text */
-}
 
-.logo img {
-    width: 32px;  /* Adjust size as needed */
-    height: 32px;
-    border-radius: 50%;  /* Makes it circular if you want */
-}
+       .logo {
+           color: white;
+           font-family: 'Press Start 2P', system-ui;
+           font-size: 18px;
+           text-shadow: 2px 2px 0 #3B4CCA;
+           display: flex;
+           align-items: center;
+           gap: 12px;
+       }
+
+       .logo img {
+           width: 32px;
+           height: 32px;
+           border-radius: 50%;
+       }
+
        .nav-buttons {
            display: flex;
            gap: 15px;
        }
-       .disclaimer {
-   position: absolute;
-   top: 80px;
-   left: 50%;
-   transform: translateX(-50%);
-   color: white;
-   font-family: 'Press Start 2P', system-ui;
-   font-size: 10px;
-   text-shadow: 1px 1px 0 #3B4CCA;
-   text-align: center;
-   width: 100%;
-   z-index: 1001;
-   bottom: auto;
-}
 
-.transform-options {
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    z-index: 1002;
-    display: none;
-}
-
-.transform-btn {
-    background: #3B4CCA;
-    color: white;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-family: 'Press Start 2P', system-ui;
-    font-size: 12px;
-    transition: transform 0.2s;
-    box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
-}
-
-.transform-btn:hover {
-    transform: scale(1.05);
-    background: #2A3BBB;
-}
-
-.file-input {
-    display: none;
-}
-
-.ditto-model {
-   position: absolute;
-   top: 50%;
-   left: 50%;
-   transform: translate(-50%, -50%);
-}
        .header-btn {
            background: #A664A5;
            color: white;
@@ -127,48 +78,86 @@
            transition: transform 0.2s;
            text-decoration: none;
        }
+
        .header-btn:hover {
            transform: scale(1.05);
            background: #8A4589;
        }
+
+       .disclaimer {
+           position: absolute;
+           top: 80px;
+           left: 50%;
+           transform: translateX(-50%);
+           color: white;
+           font-family: 'Press Start 2P', system-ui;
+           font-size: 10px;
+           text-shadow: 1px 1px 0 #3B4CCA;
+           text-align: center;
+           width: 100%;
+           z-index: 1001;
+       }
+
        .dialog-box {
-   position: absolute;
-   bottom: 0px;
-   left: 25%;
-   transform: translateX(-50%);
-   width: 400px;
-   bottom: 10px;
-   background: rgba(0, 0, 0, 0.7);
-   border-radius: 10px;
-   border: 1px solid rgba(255, 255, 255, 0.1);
-   padding: 10px;
-   z-index: 1000;
-   font-family: 'Press Start 2P', system-ui;
-   margin: 0;
-   box-shadow: 0 0 20px rgba(59, 76, 202, 0.5);
-}
+           position: absolute;
+           bottom: 10px;
+           left: 25%;
+           transform: translateX(-50%);
+           width: 400px;
+           background: rgba(0, 0, 0, 0.7);
+           border-radius: 10px;
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           padding: 10px;
+           z-index: 1000;
+           font-family: 'Press Start 2P', system-ui;
+           box-shadow: 0 0 20px rgba(59, 76, 202, 0.5);
+       }
 
-input {
-    width: 100%;
-    padding: 2px 10px;
-    height: 12px;
-    line-height: 12px;
-    border: none;
-    font-size: 12px;
-    background: transparent;
-    outline: none;
-    color: white;
-    font-family: 'Press Start 2P', system-ui;
-}
+       .input-group {
+           display: flex;
+           gap: 10px;
+           align-items: center;
+       }
 
-.dialog-box input {
-    padding: 2px 10px;
-    height: 12px;
-    color: white;
-}
+       .dialog-box input {
+           flex: 1;
+           padding: 2px 10px;
+           height: 12px;
+           color: white;
+           background: transparent;
+           border: none;
+           font-family: 'Press Start 2P', system-ui;
+           font-size: 12px;
+           outline: none;
+       }
+
        input::placeholder {
            color: #7A8089;
        }
+
+       .transform-btn {
+           background: #3B4CCA;
+           color: white;
+           padding: 8px 16px;
+           border: none;
+           border-radius: 20px;
+           cursor: pointer;
+           font-family: 'Press Start 2P', system-ui;
+           font-size: 12px;
+           transition: transform 0.2s;
+           box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
+           white-space: nowrap;
+       }
+
+       .transform-btn:hover {
+           transform: scale(1.05);
+           background: #2A3BBB;
+       }
+
+       .file-input {
+           display: none;
+       }
+
        .progress-bar {
            position: absolute;
            top: 30%;
@@ -184,91 +173,6 @@ input {
            box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
        }
 
-       .chat-container {
-   display: flex;
-   max-width: 1800px;
-   width: 95%;
-   height: calc(90vh - 60px);
-   gap: 30px;
-   justify-content: space-between; /* Change from center to space-between */
-   align-items: flex-start;
-   margin: auto;
-   padding-top: 140px;
-   margin-bottom: 60px;
-}
-
-.chat-terminal {
-   flex: 1;
-   background-color: rgba(0, 0, 0, 0.5);
-   border-radius: 10px;
-   padding: 20px;
-   display: flex;
-   flex-direction: column;
-   height: 700px;
-   width: 400px;  /* Set a fixed width */
-   max-width: 400px; /* Match the fixed width */
-   border: 1px solid rgba(255, 255, 255, 0.1);
-   margin-top: -20px;
-   margin-left: auto; /* Add this to push it to the right */
-}
-
-.input-container {
-    display: flex;
-    gap: 10px;
-}
-
-.send-btn {
-    background: #FF5350;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 0 20px;
-    font-family: 'Press Start 2P', system-ui;
-    cursor: pointer;
-}
-
-.message {
-   background: rgba(255, 255, 255, 0.05);
-   border: 1px solid rgba(255, 255, 255, 0.1);
-   border-radius: 8px;
-   padding: 12px;
-   margin-bottom: 10px;
-   font-family: 'Press Start 2P', system-ui !important;
-   font-size: 10px;
-   color: white;
-   line-height: 1.8;
-}
-
-.user-message {
-    background: #3B4CCA;
-}
-
-.assistant-message {
-    background: #1a2634;
-}
-
-.chat-messages {
-    flex-grow: 1;
-    overflow-y: auto;
-    margin-bottom: 20px;
-    padding: 15px;
-}
-
-.model-viewer-container {
-    width: 75%;
-    height: calc(100vh - 80px);
-    margin-top: 80px;
-}
-
-
-.chat-input {
-    background: rgba(0, 0, 0, 0.3);
-    font-family: 'Press Start 2P', system-ui !important;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    padding: 12px;
-    color: white;
-}
        .progress-fill {
            height: 100%;
            background: #FF0000;
@@ -277,31 +181,135 @@ input {
            width: 0%;
            transition: width 0.3s;
        }
-       .download-btn {
-   position: absolute;
-   bottom: 30px;
-   left: 400px;
-   transform: translateX(-50%);
-   padding: 10px 20px;
-   background: #3B4CCA;
-   color: white;
-   border: none;
-   border-radius: 20px;
-   cursor: pointer;
-   display: none;
-   pointer-events: auto;
-   z-index: 1002;
-   font-family: 'Press Start 2P', system-ui;
-   font-size: 12px;
-   box-shadow: 0 0 15px rgba(59, 76, 202, 0.5);
-   transition: all 0.2s;
-}
 
-.download-btn:hover {
-   transform: scale(1.05);
-   background: #2A3BBB;
-   transform: translateX(-50%) scale(1.05);
-}
+       .animate-btn {
+           position: absolute;
+           bottom: 70px;
+           left: 400px;
+           transform: translateX(-50%);
+           padding: 10px 20px;
+           background: #3B4CCA;
+           color: white;
+           border: none;
+           border-radius: 20px;
+           cursor: pointer;
+           display: none;
+           font-family: 'Press Start 2P', system-ui;
+           font-size: 12px;
+           box-shadow: 0 0 15px rgba(59, 76, 202, 0.5);
+           transition: all 0.2s;
+           z-index: 1002;
+       }
+
+       .animate-btn:hover {
+           transform: scale(1.05) translateX(-50%);
+           background: #2A3BBB;
+       }
+
+       .download-btn {
+           position: absolute;
+           bottom: 30px;
+           left: 400px;
+           transform: translateX(-50%);
+           padding: 10px 20px;
+           background: #3B4CCA;
+           color: white;
+           border: none;
+           border-radius: 20px;
+           cursor: pointer;
+           display: none;
+           font-family: 'Press Start 2P', system-ui;
+           font-size: 12px;
+           box-shadow: 0 0 15px rgba(59, 76, 202, 0.5);
+           transition: all 0.2s;
+           z-index: 1002;
+       }
+
+       .download-btn:hover {
+           transform: scale(1.05) translateX(-50%);
+           background: #2A3BBB;
+       }
+
+       .chat-container {
+           display: flex;
+           max-width: 1800px;
+           width: 95%;
+           height: calc(90vh - 60px);
+           gap: 30px;
+           justify-content: space-between;
+           align-items: flex-start;
+           margin: auto;
+           padding-top: 140px;
+           margin-bottom: 60px;
+       }
+
+       .chat-terminal {
+           flex: 1;
+           background-color: rgba(0, 0, 0, 0.5);
+           border-radius: 10px;
+           padding: 20px;
+           display: flex;
+           flex-direction: column;
+           height: 700px;
+           width: 400px;
+           max-width: 400px;
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           margin-top: -20px;
+           margin-left: auto;
+       }
+
+       .chat-messages {
+           flex-grow: 1;
+           overflow-y: auto;
+           margin-bottom: 20px;
+           padding: 15px;
+       }
+
+       .message {
+           background: rgba(255, 255, 255, 0.05);
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 8px;
+           padding: 12px;
+           margin-bottom: 10px;
+           font-family: 'Press Start 2P', system-ui;
+           font-size: 10px;
+           color: white;
+           line-height: 1.8;
+       }
+
+       .user-message {
+           background: #3B4CCA;
+       }
+
+       .assistant-message {
+           background: #1a2634;
+       }
+
+       .input-container {
+           display: flex;
+           gap: 10px;
+       }
+
+       .chat-input {
+           flex: 1;
+           background: rgba(0, 0, 0, 0.3);
+           font-family: 'Press Start 2P', system-ui;
+           border: 1px solid rgba(255, 255, 255, 0.1);
+           border-radius: 8px;
+           padding: 12px;
+           color: white;
+       }
+
+       .send-btn {
+           background: #FF5350;
+           color: white;
+           border: none;
+           border-radius: 8px;
+           padding: 0 20px;
+           font-family: 'Press Start 2P', system-ui;
+           cursor: pointer;
+       }
+
        #loading, #status { 
            position: fixed;
            top: 50%;
@@ -329,6 +337,7 @@ input {
             <a href="community.html" class="header-btn">Community</a>
         </div>
     </div>
+
     <div class="chat-container">
         <div id="container">
             <div id="loading">Transforming...</div>
@@ -336,21 +345,18 @@ input {
             <div class="disclaimer">
                 Please allow up to 1 minute for 3D object generation
             </div>
+            <button onclick="rigModel()" class="animate-btn">Animate/Rig</button>
             <button class="download-btn">Download Model</button>
         </div>
-        <div class="transform-options">
-            <button onclick="remeshModel()" class="transform-btn">Remesh</button>
-            <button onclick="textureModel()" class="transform-btn">Texture</button>
-            <button onclick="stylizeModel()" class="transform-btn">Stylize</button>
-            <button onclick="rigModel()" class="transform-btn">Animate/Rig</button>
-            <input type="file" id="imageUpload" accept="image/*" class="file-input">
-            <button onclick="document.getElementById('imageUpload').click()" class="transform-btn">Image to 3D</button>
-        </div>
-            <button class="download-btn">Download Model</button>
-        </div>
+
         <div class="dialog-box">
-            <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
+            <div class="input-group">
+                <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
+                <input type="file" id="imageUpload" accept="image/*" class="file-input">
+                <button onclick="document.getElementById('imageUpload').click()" class="transform-btn">Image to 3D</button>
+            </div>
         </div>
+
         <div class="chat-terminal">
             <div class="chat-messages">
                 <div class="message assistant-message">
@@ -365,7 +371,8 @@ input {
                 <div class="progress-fill"></div>
             </div>
         </div>
-     </div>
+    </div>
+
     <script>
         const SYSTEM_PROMPT = `You are DittoAI, a professional 3D modeling and digital art expert. You have extensive knowledge of:
 - 3D modeling software (Blender, Maya, 3DS Max)
@@ -388,20 +395,21 @@ Response style:
 - Maintain a professional, expert tone
 - Avoid using asterisks or roleplay-style responses
 - Write naturally as a 3D software expert would communicate`;
-    const API_BASE = '/api';
-const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
-let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, downloadUrl = null;
+
+        const API_BASE = '/api';
+        const MESHY_API_KEY = 'msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK';
+        let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, downloadUrl = null;
 
         async function init() {
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             renderer = new THREE.WebGLRenderer({ 
-    antialias: true,
-    alpha: true 
-});
-scene.background = null;
+                antialias: true,
+                alpha: true 
+            });
+            scene.background = null;
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setClearColor(0x000000, 0); // Make renderer background transparent
+            renderer.setClearColor(0x000000, 0);
             document.getElementById('container').appendChild(renderer.domElement);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -439,486 +447,299 @@ scene.background = null;
             });
         }
 
-function handleChatInput(event) {
-    if (event.key === 'Enter') {
-        const input = event.target;
-        const message = input.value.trim();
-        if (message) {
-            addMessage(message, 'user');
-            input.value = '';
-            handleAIResponse(message);
-        }
-    }
-}
-
-async function remeshModel() {
-    if (!downloadUrl) return;
-    updateProgress(0);
-    document.getElementById('status').textContent = 'Remeshing model...';
-    
-    try {
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/remesh`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model_url: downloadUrl
-            })
-        });
-
-        if (!response.ok) throw new Error('Remesh failed');
-        const data = await response.json();
-        await checkTaskStatus(data.task_id, 'Remeshing');
-        downloadUrl = data.model_url;
-        await loadNewModel(downloadUrl);
-    } catch (error) {
-        console.error('Remesh error:', error);
-        document.getElementById('status').textContent = 'Remesh failed';
-    }
-}
-
-async function textureModel() {
-    if (!downloadUrl) return;
-    updateProgress(0);
-    document.getElementById('status').textContent = 'Texturing model...';
-    
-    try {
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/texture`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model_url: downloadUrl,
-                style: 'realistic'
-            })
-        });
-
-        if (!response.ok) throw new Error('Texturing failed');
-        const data = await response.json();
-        await checkTaskStatus(data.task_id, 'Texturing');
-        downloadUrl = data.model_url;
-        await loadNewModel(downloadUrl);
-    } catch (error) {
-        console.error('Texture error:', error);
-        document.getElementById('status').textContent = 'Texturing failed';
-    }
-}
-
-async function stylizeModel() {
-    if (!downloadUrl) return;
-    updateProgress(0);
-    document.getElementById('status').textContent = 'Stylizing model...';
-    
-    try {
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/stylize`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model_url: downloadUrl,
-                style: 'cartoon'
-            })
-        });
-
-        if (!response.ok) throw new Error('Stylize failed');
-        const data = await response.json();
-        await checkTaskStatus(data.task_id, 'Stylizing');
-        downloadUrl = data.model_url;
-        await loadNewModel(downloadUrl);
-    } catch (error) {
-        console.error('Stylize error:', error);
-        document.getElementById('status').textContent = 'Stylizing failed';
-    }
-}
-
-async function rigModel() {
-    if (!downloadUrl) return;
-    updateProgress(0);
-    document.getElementById('status').textContent = 'Rigging model...';
-    
-    try {
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/rig`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model_url: downloadUrl
-            })
-        });
-
-        if (!response.ok) throw new Error('Rigging failed');
-        const data = await response.json();
-        await checkTaskStatus(data.task_id, 'Rigging');
-        downloadUrl = data.model_url;
-        await loadNewModel(downloadUrl);
-    } catch (error) {
-        console.error('Rig error:', error);
-        document.getElementById('status').textContent = 'Rigging failed';
-    }
-}
-
-async function imageToModel(file) {
-    updateProgress(0);
-    document.getElementById('status').textContent = 'Converting image to 3D...';
-    
-    try {
-        const formData = new FormData();
-        formData.append('file', file); // Change 'image' to 'file'
-        formData.append('type', 'image'); // Add this line
-        
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/image-to-3d`, { // Update the endpoint
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`
-                // Remove Content-Type header to let browser set it with boundary
-            },
-            body: formData
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error:', errorText);
-            throw new Error('Image conversion failed');
-        }
-
-        const data = await response.json();
-        console.log('Image to 3D response:', data);
-        
-        // Handle task status checking
-        const taskId = data.result;
-        let status;
-        do {
-            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/image-to-3d/${taskId}`, {
-                headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-            });
-            const statusData = await statusResponse.json();
-            console.log('Status:', statusData);
-            status = statusData.status;
-            document.getElementById('status').textContent = `Converting: ${status}`;
-            updateProgress(status === 'SUCCEEDED' ? 100 : 50);
-            if (status === 'SUCCEEDED') {
-                downloadUrl = statusData.model_urls.glb;
-                await loadNewModel(downloadUrl);
-                return;
+        async function handleChatInput(event) {
+            if (event.key === 'Enter') {
+                const input = event.target;
+                const message = input.value.trim();
+                if (message) {
+                    addMessage(message, 'user');
+                    input.value = '';
+                    await handleAIResponse(message);
+                }
             }
-            await new Promise(r => setTimeout(r, 2000));
-        } while (status === 'PENDING' || status === 'IN_PROGRESS');
-
-        throw new Error('Conversion failed or timed out');
-    } catch (error) {
-        console.error('Image to 3D error:', error);
-        document.getElementById('status').textContent = 'Image conversion failed';
-    }
-}
-
-async function checkTaskStatus(taskId, operation) {
-    let status;
-    do {
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/tasks/${taskId}`, {
-            headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-        });
-        const data = await response.json();
-        status = data.status;
-        document.getElementById('status').textContent = `${operation}: ${status}`;
-        updateProgress(status === 'SUCCEEDED' ? 100 : 50);
-        await new Promise(r => setTimeout(r, 2000));
-    } while (status === 'PENDING' || status === 'IN_PROGRESS');
-    
-    if (status !== 'SUCCEEDED') throw new Error(`${operation} failed`);
-}
-
-async function loadNewModel(modelUrl) {
-    const localUrl = await downloadAndCreateBlob(modelUrl);
-    const loader = new THREE.GLTFLoader();
-    
-    return new Promise((resolve, reject) => {
-        loader.load(localUrl, (gltf) => {
-            URL.revokeObjectURL(localUrl);
-            if (currentModel) scene.remove(currentModel);
-            
-            const newModel = gltf.scene;
-            currentModel = newModel;
-            scene.add(newModel);
-            
-            gsap.fromTo(newModel.scale, 
-                {x: 0, y: 0, z: 0},
-                {x: 2, y: 2, z: 2, duration: 1, ease: "power2.out"}
-            );
-            
-            resolve();
-        }, undefined, reject);
-    });
-}
-
-// Add this to your transform function, just before setting downloadBtn.style.display = 'block':
-document.querySelector('.transform-options').style.display = 'flex';
-
-// Add event listener for image upload
-document.getElementById('imageUpload')?.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        imageToModel(file);
-    }
-});
-
-function addMessage(text, type) {
-    const messages = document.querySelector('.chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}-message`;
-    messageDiv.textContent = text;
-    messages.appendChild(messageDiv);
-    messages.scrollTop = messages.scrollHeight;
-}
-
-async function handleAIResponse(message) {
-   try {
-       const response = await fetch('/api/chat', {
-           method: 'POST',
-           headers: {
-               'Content-Type': 'application/json'
-           },
-           body: JSON.stringify({
-               message: message,
-               systemPrompt: SYSTEM_PROMPT
-           })
-       });
-
-       if (!response.ok) throw new Error('API Error');
-       
-       const data = await response.json();
-       if (data?.content?.[0]?.text) {
-        addMessage(data.content[0].text, 'assistant');
         }
-    } catch (error) {
-        console.error('Chat error:', error);
-        addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
-    }
-}
 
-async function generate3DModel(prompt) {
-    updateProgress(10);
-    const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${MESHY_API_KEY}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            mode: "preview",
-            prompt: prompt,
-            art_style: "realistic",
-            quality: "speed"
-        })
-    });
-
-    console.log('Preview Response Status:', previewResponse.status);
-    const previewData = await previewResponse.json();
-    console.log('Preview Data:', previewData);
-
-    if (!previewResponse.ok) throw new Error('Preview generation failed');
-    const taskId = previewData.result;
-
-    let status;
-    do {
-        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
-            headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-        });
-        const statusData = await statusResponse.json();
-        console.log('Status Data:', statusData);
-        status = statusData.status;
-        document.getElementById('status').textContent = `Preview: ${status}`;
-        updateProgress(30);
-        await new Promise(r => setTimeout(r, 2000));
-    } while (status === 'PENDING' || status === 'IN_PROGRESS');
-
-    if (status !== 'SUCCEEDED') throw new Error('Preview failed');
-    updateProgress(50);
-
-    const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${MESHY_API_KEY}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            mode: "refine",
-            preview_task_id: taskId,
-            enable_pbr: true
-        })
-    });
-
-    if (!refineResponse.ok) throw new Error('Refine task failed');
-    const refineData = await refineResponse.json();
-    const refineId = refineData.result;
-
-    do {
-        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineId}`, {
-            headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-        });
-        const statusData = await statusResponse.json();
-        console.log('Refine Status:', statusData);
-        status = statusData.status;
-        document.getElementById('status').textContent = `Refining: ${status}`;
-        updateProgress(80);
-        if (status === 'SUCCEEDED') {
-            updateProgress(100);
-            const modelUrl = statusData.model_urls.glb;
-            
-            // Save the model to community collection
+        async function handleAIResponse(message) {
             try {
-                await fetch('/api/community/add', {
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        modelUrl: modelUrl,
-                        prompt: prompt,
-                        timestamp: new Date().toISOString()
+                        message: message,
+                        systemPrompt: SYSTEM_PROMPT
                     })
                 });
+
+                if (!response.ok) throw new Error('API Error');
+                
+                const data = await response.json();
+                if (data?.content?.[0]?.text) {
+                    addMessage(data.content[0].text, 'assistant');
+                }
             } catch (error) {
-                console.error('Error saving to community:', error);
+                console.error('Chat error:', error);
+                addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
             }
+        }
+
+        async function rigModel() {
+            if (!downloadUrl) return;
+            updateProgress(0);
+            document.getElementById('status').textContent = 'Rigging model...';
+            document.getElementById('status').style.display = 'block';
             
-            return modelUrl;
+            try {
+                const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/rig`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${MESHY_API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model_url: downloadUrl
+                    })
+                });
+
+                if (!response.ok) throw new Error('Rigging failed');
+                const data = await response.json();
+                await checkTaskStatus(data.task_id, 'Rigging');
+                downloadUrl = data.model_url;
+                await loadNewModel(downloadUrl);
+            } catch (error) {
+                console.error('Rig error:', error);
+                document.getElementById('status').textContent = 'Rigging failed';
+            } finally {
+                document.getElementById('status').style.display = 'none';
+            }
         }
-        await new Promise(r => setTimeout(r, 2000));
-    } while (status === 'PENDING' || status === 'IN_PROGRESS');
 
-    throw new Error('Refine failed');
-}
+        async function imageToModel(file) {
+            updateProgress(0);
+            document.getElementById('status').textContent = 'Converting image to 3D...';
+            document.getElementById('status').style.display = 'block';
+            
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('type', 'image');
+                
+                const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/image-to-3d`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${MESHY_API_KEY}`
+                    },
+                    body: formData
+                });
 
-function typewriterEffect(element, text, speed = 20) {
-    let i = 0;
-    element.textContent = '';
-    function type() {
-        if (i < text.length) {
-            element.textContent += text.charAt(i);
-            i++;
-            setTimeout(type, speed);
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error('Image conversion failed');
+                }
+
+                const data = await response.json();
+                const taskId = data.result;
+                let status;
+                do {
+                    const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/image-to-3d/${taskId}`, {
+                        headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+                    });
+                    const statusData = await statusResponse.json();
+                    status = statusData.status;
+                    document.getElementById('status').textContent = `Converting: ${status}`;
+                    updateProgress(status === 'SUCCEEDED' ? 100 : 50);
+                    if (status === 'SUCCEEDED') {
+                        downloadUrl = statusData.model_urls.glb;
+                        await loadNewModel(downloadUrl);
+                        document.querySelector('.animate-btn').style.display = 'block';
+                        return;
+                    }
+                    await new Promise(r => setTimeout(r, 2000));
+                } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+                throw new Error('Conversion failed or timed out');
+            } catch (error) {
+                console.error('Image to 3D error:', error);
+                document.getElementById('status').textContent = 'Image conversion failed';
+            } finally {
+                document.getElementById('status').style.display = 'none';
+            }
         }
-    }
-    type();
-}
 
-function addMessage(text, type) {
-    const messages = document.querySelector('.chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${type}-message`;
-    messages.appendChild(messageDiv);
-    
-    if (type === 'assistant') {
-        typewriterEffect(messageDiv, text);
-    } else {
-        messageDiv.textContent = text;
-    }
-    messages.scrollTop = messages.scrollHeight;
-}
+        async function checkTaskStatus(taskId, operation) {
+            let status;
+            do {
+                const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/tasks/${taskId}`, {
+                    headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+                });
+                const data = await response.json();
+                status = data.status;
+                document.getElementById('status').textContent = `${operation}: ${status}`;
+                updateProgress(status === 'SUCCEEDED' ? 100 : 50);
+                await new Promise(r => setTimeout(r, 2000));
+            } while (status === 'PENDING' || status === 'IN_PROGRESS');
+            
+            if (status !== 'SUCCEEDED') throw new Error(`${operation} failed`);
+        }
+
+        async function loadNewModel(modelUrl) {
+            const localUrl = await downloadAndCreateBlob(modelUrl);
+            const loader = new THREE.GLTFLoader();
+            
+            return new Promise((resolve, reject) => {
+                loader.load(localUrl, (gltf) => {
+                    URL.revokeObjectURL(localUrl);
+                    if (currentModel) scene.remove(currentModel);
+                    
+                    const newModel = gltf.scene;
+                    currentModel = newModel;
+                    scene.add(newModel);
+                    
+                    gsap.fromTo(newModel.scale, 
+                        {x: 0, y: 0, z: 0},
+                        {x: 2, y: 2, z: 2, duration: 1, ease: "power2.out"}
+                    );
+                    
+                    resolve();
+                }, undefined, reject);
+            });
+        }
+
+        document.getElementById('imageUpload')?.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                imageToModel(file);
+            }
+        });
+
+        function typewriterEffect(element, text, speed = 20) {
+            let i = 0;
+            element.textContent = '';
+            function type() {
+                if (i < text.length) {
+                    element.textContent += text.charAt(i);
+                    i++;
+                    setTimeout(type, speed);
+                }
+            }
+            type();
+        }
+
+        function addMessage(text, type) {
+            const messages = document.querySelector('.chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messages.appendChild(messageDiv);
+            
+            if (type === 'assistant') {
+                typewriterEffect(messageDiv, text);
+            } else {
+                messageDiv.textContent = text;
+            }
+            messages.scrollTop = messages.scrollHeight;
+        }
 
         async function downloadAndCreateBlob(url) {
             const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
             const response = await fetch(proxyUrl);
             const blob = await response.blob();
             return URL.createObjectURL(blob);
-          }
+        }
 
-          document.querySelector('.download-btn').addEventListener('click', async () => {
-   if (!downloadUrl) return;
-   
-   try {
-       const proxyUrl = `/api/proxy?url=${encodeURIComponent(downloadUrl)}`;
-       const response = await fetch(proxyUrl, {
-           headers: {
-               'Accept': 'model/gltf-binary'
-           }
-       });
-       const blob = await response.blob();
-       const url = window.URL.createObjectURL(blob);
-       const a = document.createElement('a');
-       a.href = url;
-       a.download = 'ditto-transformed.glb';
-       a.style.display = 'none';
-       document.body.appendChild(a);
-       a.click();
-       window.URL.revokeObjectURL(url);
-       document.body.removeChild(a);
-   } catch (error) {
-       console.error('Download failed:', error);
-   }
-});
+        document.querySelector('.download-btn').addEventListener('click', async () => {
+            if (!downloadUrl) return;
+            
+            try {
+                const proxyUrl = `/api/proxy?url=${encodeURIComponent(downloadUrl)}`;
+                const response = await fetch(proxyUrl, {
+                    headers: {
+                        'Accept': 'model/gltf-binary'
+                    }
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'ditto-transformed.glb';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error('Download failed:', error);
+            }
+        });
 
-function updateProgress(percent) {
-    const bar = document.querySelector('.progress-bar');
-    const fill = document.querySelector('.progress-fill');
-    bar.style.display = 'block';
-    fill.style.width = `${percent}%`;
-}
+        function updateProgress(percent) {
+            const bar = document.querySelector('.progress-bar');
+            const fill = document.querySelector('.progress-fill');
+            bar.style.display = 'block';
+            fill.style.width = `${percent}%`;
+        }
 
-async function transform(promptText) {
-   if (!dittoModel) return;
-   const bar = document.querySelector('.progress-bar');
-   const downloadBtn = document.querySelector('.download-btn');
-   bar.style.display = 'block';
-   downloadBtn.style.display = 'none';
-   
-   try {
-       const modelUrl = await generate3DModel(promptText);
-       downloadUrl = modelUrl;
-       const localUrl = await downloadAndCreateBlob(modelUrl);
-       
-       const loader = new THREE.GLTFLoader();
-       loader.load(localUrl, (gltf) => {
-           URL.revokeObjectURL(localUrl);
-           if (currentModel) scene.remove(currentModel);
-           
-           const newModel = gltf.scene;
-           currentModel = newModel;
-           scene.add(newModel);
-           newModel.scale.set(0, 0, 0);
-           
-           gsap.to(dittoModel.scale, {
-               x: 0, y: 0, z: 0,
-               duration: 1,
-               ease: "power2.in"
-           });
+        async function transform(promptText) {
+            if (!dittoModel) return;
+            const bar = document.querySelector('.progress-bar');
+            const downloadBtn = document.querySelector('.download-btn');
+            const status = document.getElementById('status');
+            bar.style.display = 'block';
+            downloadBtn.style.display = 'none';
+            status.style.display = 'block';
+            
+            try {
+                const modelUrl = await generate3DModel(promptText);
+                downloadUrl = modelUrl;
+                const localUrl = await downloadAndCreateBlob(modelUrl);
+                
+                const loader = new THREE.GLTFLoader();
+                loader.load(localUrl, (gltf) => {
+                    URL.revokeObjectURL(localUrl);
+                    if (currentModel) scene.remove(currentModel);
+                    
+                    const newModel = gltf.scene;
+                    currentModel = newModel;
+                    scene.add(newModel);
+                    newModel.scale.set(0, 0, 0);
+                    
+                    gsap.to(dittoModel.scale, {
+                        x: 0, y: 0, z: 0,
+                        duration: 1,
+                        ease: "power2.in"
+                    });
 
-           gsap.to(newModel.scale, {
-   x: 2, y: 2, z: 2,  // Change from 1 to 2 (or your preferred scale)
-   duration: 1,
-   delay: 1,
-   ease: "power2.out",
-   onComplete: () => {
-       gsap.to(newModel.rotation, {
-           y: Math.PI * 2,
-           duration: 2,
-           ease: "power1.inOut"
-       });
-       downloadBtn.style.display = 'block';
-       downloadBtn.style.pointerEvents = 'auto';
-       downloadBtn.style.zIndex = '1001';
-   }
-});
-       });
-   } catch (error) {
-       console.error('Transform failed:', error);
-       gsap.to(dittoModel.scale, {
-           x: 1, y: 1, z: 1,
-           duration: 1,
-           ease: "power2.out"
-       });
-   } finally {
-       bar.style.display = 'none';
-   }
-}
+                    gsap.to(newModel.scale, {
+                        x: 2, y: 2, z: 2,
+                        duration: 1,
+                        delay: 1,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            gsap.to(newModel.rotation, {
+                                y: Math.PI * 2,
+                                duration: 2,
+                                ease: "power1.inOut"
+                            });
+                            document.querySelector('.animate-btn').style.display = 'block';
+                            downloadBtn.style.display = 'block';
+                            downloadBtn.style.pointerEvents = 'auto';
+                            downloadBtn.style.zIndex = '1001';
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error('Transform failed:', error);
+                gsap.to(dittoModel.scale, {
+                    x: 1, y: 1, z: 1,
+                    duration: 1,
+                    ease: "power2.out"
+                });
+            } finally {
+                bar.style.display = 'none';
+                status.style.display = 'none';
+            }
+        }
 
         function animate() {
             requestAnimationFrame(animate);
