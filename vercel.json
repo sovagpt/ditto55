@@ -1,12 +1,5 @@
 {
   "env": {
     "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK"
-  },
-  "version": 2,
-  "routes": [
-    { "src": "/api/community/add", "dest": "/api/community/add.js" },
-    { "src": "/api/community/models", "dest": "/api/community/models.js" },
-    { "src": "/api/proxy", "dest": "/api/proxy.js" },
-    { "src": "/api/chat", "dest": "/api/chat.js" }
-  ]
+  }
 }
