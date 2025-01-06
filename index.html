@@ -81,6 +81,57 @@
             background: transparent;
             outline: none;
         }
+        #chat-terminal {
+            position: fixed;
+            bottom: 100px;
+            left: 20px;
+            width: 300px;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #333;
+            border-radius: 5px;
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        #chat-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+            color: #0f0;
+            font-family: monospace;
+        }
+        .message {
+            margin: 5px 0;
+            color: #0f0;
+        }
+        .user-message { color: #0f0; }
+        .assistant-message { color: #0ff; }
+        #chat-input {
+            border-top: 1px solid #333;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        #chat-terminal input {
+            flex-grow: 1;
+            background: rgba(0, 0, 0, 0.5);
+            color: #0f0;
+            border: 1px solid #333;
+            border-radius: 3px;
+        }
         #loading, #status { 
             position: fixed;
             top: 50%;
@@ -96,6 +147,13 @@
     <div id="container"></div>
     <div id="loading">Transforming...</div>
     <div id="status"></div>
+    <button id="chat-button" onclick="toggleChat()">Chat</button>
+    <div id="chat-terminal">
+        <div id="chat-messages"></div>
+        <div id="chat-input">
+            <input type="text" placeholder="Type here..." onkeydown="handleChatKeyDown(event)">
+        </div>
+    </div>
     <button id="chat-button" onclick="toggleChat()">Chat</button>
     <div id="chat-terminal">
         <div id="chat-messages"></div>
