@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         res.status(200).end();
         return;
     }
-
+    
     const fetchOptions = {
         method: req.method,
         headers: {
@@ -21,8 +21,15 @@ export default async function handler(req, res) {
     };
 
     if (req.method === 'POST') {
-        fetchOptions.headers['Content-Type'] = 'application/json';
-        fetchOptions.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+        // Handle file uploads for image-to-3D
+        if (req.headers['content-type']?.includes('multipart/form-data')) {
+            fetchOptions.body = req.body;
+            fetchOptions.headers['Content-Type'] = req.headers['content-type'];
+        } else {
+            // Handle JSON requests for other transformations
+            fetchOptions.headers['Content-Type'] = 'application/json';
+            fetchOptions.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+        }
     }
 
     try {
