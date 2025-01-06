@@ -74,6 +74,8 @@
             pointer-events: none;
             display: none;
             z-index: 1000;
+            max-width: 300px;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -158,53 +160,76 @@
         }
 
         async function loadCommunityModels() {
-    try {
-        const response = await fetch('/api/community/models');
-        if (!response.ok) {
-            console.error('Failed to fetch models:', response.status);
-            return;
-        }
-
-        const communityModels = await response.json();
-        console.log('Received models data:', communityModels);
-        
-        const loader = new THREE.GLTFLoader();
-
-        for (let i = 0; i < communityModels.length; i++) {
-            const modelData = communityModels[i];
             try {
-                // Use proxy endpoint to load the model
-                const proxyUrl = `/api/proxy?url=${encodeURIComponent(modelData.modelUrl)}`;
-                console.log(`Loading model ${i + 1} through proxy:`, proxyUrl);
-                
-                const gltf = await new Promise((resolve, reject) => {
-                    loader.load(proxyUrl, resolve, 
-                        (progress) => {
-                            console.log(`Loading progress: ${(progress.loaded / progress.total * 100).toFixed(2)}%`);
-                        }, 
-                        reject
-                    );
-                });
+                console.log('Fetching models from:', `${API_BASE_URL}/api/community/models`);
+                const response = await fetch('/api/community/models');
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Failed to fetch models:', response.status, errorText);
+                    document.querySelector('.loading').textContent = `Error: ${response.status} - Failed to load models`;
+                    return;
+                }
 
-                const model = gltf.scene;
-                model.scale.set(modelScale, modelScale, modelScale);
+                const communityModels = await response.json();
+                console.log('Received models data:', communityModels);
                 
-                const radius = 8;
-                const angle = (i / communityModels.length) * Math.PI * 2;
-                model.position.x = Math.cos(angle) * radius;
-                model.position.z = Math.sin(angle) * radius;
-                model.position.y = -2;
-                
-                scene.add(model);
-                models.push(model);
+                if (!Array.isArray(communityModels) || communityModels.length === 0) {
+                    document.querySelector('.loading').textContent = 'No models found';
+                    document.getElementById('modelCount').textContent = '0 Creations';
+                    return;
+                }
+
+                const loader = new THREE.GLTFLoader();
+
+                for (let i = 0; i < communityModels.length; i++) {
+                    const modelData = communityModels[i];
+                    try {
+                        const proxyUrl = `/api/proxy?url=${encodeURIComponent(modelData.modelUrl)}`;
+                        console.log(`Loading model ${i + 1} through proxy:`, proxyUrl);
+                        
+                        const gltf = await new Promise((resolve, reject) => {
+                            loader.load(proxyUrl, resolve, 
+                                (progress) => {
+                                    const percent = (progress.loaded / progress.total * 100).toFixed(0);
+                                    document.querySelector('.loading').textContent = 
+                                        `Loading model ${i + 1}/${communityModels.length} (${percent}%)`;
+                                    console.log(`Loading progress: ${percent}%`);
+                                }, 
+                                (error) => {
+                                    console.error(`Error loading model ${i + 1}:`, error);
+                                    reject(error);
+                                }
+                            );
+                        });
+
+                        const model = gltf.scene;
+                        model.scale.set(modelScale, modelScale, modelScale);
+                        
+                        // Position models in a circle
+                        const radius = 8 + Math.floor(i / 8) * 6; // Multiple circles as collection grows
+                        const angle = (i % 8) * Math.PI * 0.25; // 8 models per circle
+                        model.position.x = Math.cos(angle) * radius;
+                        model.position.z = Math.sin(angle) * radius;
+                        model.position.y = -2;
+                        
+                        // Add user data for hover info
+                        model.userData = {
+                            prompt: modelData.prompt,
+                            created: new Date(modelData.timestamp).toLocaleDateString()
+                        };
+                        
+                        scene.add(model);
+                        models.push(model);
+                        document.getElementById('modelCount').textContent = `${models.length} Creations`;
+                    } catch (error) {
+                        console.error(`Error loading model ${i + 1}:`, error);
+                    }
+                }
             } catch (error) {
-                console.error(`Error loading model ${i + 1}:`, error);
+                console.error('Error in loadCommunityModels:', error);
+                document.querySelector('.loading').textContent = `Error: ${error.message}`;
             }
         }
-    } catch (error) {
-        console.error('Error in loadCommunityModels:', error);
-    }
-}
 
         window.addEventListener('mousemove', (event) => {
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
