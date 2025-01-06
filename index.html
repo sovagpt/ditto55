@@ -100,70 +100,6 @@
        input::placeholder {
            color: #7A8089;
        }
-       .chat-button {
-        position: fixed;
-        bottom: 120px;
-        left: 30px;
-        background: #3B4CCA;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 20px;
-        cursor: pointer;
-        font-family: 'Press Start 2P', system-ui;
-        font-size: 12px;
-        z-index: 1000;
-        transition: transform 0.2s;
-    }
-    .chat-button:hover {
-        transform: scale(1.05);
-    }
-    .chat-terminal {
-        display: none;
-        position: fixed;
-        bottom: 120px;
-        left: 30px;
-        width: 300px;
-        height: 400px;
-        background: rgba(17, 34, 51, 0.95);
-        border: 4px solid #3B4CCA;
-        border-radius: 10px;
-        z-index: 1000;
-        font-family: 'Press Start 2P', system-ui;
-        color: white;
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-    }
-    .chat-messages {
-        flex-grow: 1;
-        overflow-y: auto;
-        margin-bottom: 10px;
-        padding: 10px;
-    }
-    .chat-input {
-        width: 100%;
-        padding: 8px;
-        background: #1a2634;
-        border: 2px solid #3B4CCA;
-        border-radius: 5px;
-        color: white;
-        font-family: 'Press Start 2P', system-ui;
-        font-size: 10px;
-    }
-    .message {
-        margin-bottom: 10px;
-        padding: 5px;
-        border-radius: 5px;
-        font-size: 10px;
-        line-height: 1.4;
-    }
-    .user-message {
-        background: #3B4CCA;
-    }
-    .assistant-message {
-        background: #1a2634;
-    }
        .progress-bar {
            position: fixed;
            top: 30%;
@@ -177,6 +113,57 @@
            display: none;
            box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
        }
+       .chat-button {
+    position: fixed;
+    bottom: 120px;
+    left: 30px;
+    background: #3B4CCA;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    z-index: 1000;
+    transition: transform 0.2s;
+}
+
+.chat-terminal {
+    display: none;
+    position: fixed;
+    bottom: 120px;
+    left: 30px;
+    width: 300px;
+    height: 400px;
+    background: rgba(17, 34, 51, 0.95);
+    border: 4px solid #3B4CCA;
+    border-radius: 10px;
+    z-index: 1000;
+    font-family: 'Press Start 2P', system-ui;
+    color: white;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.chat-input {
+    width: 100%;
+    padding: 8px;
+    background: #1a2634;
+    border: 2px solid #3B4CCA;
+    border-radius: 5px;
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 10px;
+}
        .progress-fill {
            height: 100%;
            background: #FF0000;
@@ -232,10 +219,10 @@
         </div>
     </div>
     <button class="chat-button" onclick="toggleChat()">Chat to DittoAI Agent</button>
-    <div class="chat-terminal" style="display: none;">
-        <div class="chat-messages"></div>
-        <input type="text" class="chat-input" placeholder="Ask DittoAI..." onkeydown="handleChatInput(event)">
-    </div>
+<div class="chat-terminal" style="display: none;">
+    <div class="chat-messages"></div>
+    <input type="text" class="chat-input" placeholder="Ask DittoAI..." onkeydown="handleChatInput(event)">
+</div>
     <div id="container"></div>
     <div id="loading">Transforming...</div>
     <div id="status"></div>
@@ -301,6 +288,59 @@ scene.background = null;
                 });
             });
         }
+
+        function toggleChat() {
+    const terminal = document.querySelector('.chat-terminal');
+    console.log('Current display:', terminal.style.display);
+    terminal.style.display = terminal.style.display === 'none' ? 'flex' : 'none';
+    console.log('New display:', terminal.style.display);
+}
+
+function handleChatInput(event) {
+    if (event.key === 'Enter') {
+        const input = event.target;
+        const message = input.value.trim();
+        if (message) {
+            addMessage(message, 'user');
+            input.value = '';
+            handleAIResponse(message);
+        }
+    }
+}
+
+function addMessage(text, type) {
+    const messages = document.querySelector('.chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${type}-message`;
+    messageDiv.textContent = text;
+    messages.appendChild(messageDiv);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+async function handleAIResponse(message) {
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                systemPrompt: SYSTEM_PROMPT
+            })
+        });
+
+        if (!response.ok) throw new Error('API Error');
+        
+        const data = await response.json();
+        if (data?.content?.[0]?.text) {
+            addMessage(data.content[0].text, 'assistant');
+        }
+    } catch (error) {
+        console.error('Chat error:', error);
+        addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
+    }
+}
 
         async function generate3DModel(prompt) {
     updateProgress(10);
