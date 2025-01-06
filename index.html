@@ -15,8 +15,8 @@
            background-size: cover;
        }
        #container {
-    width: 800px;
-    height: 740px;
+        width: 65%;
+        height: 700px;
     background-color: rgba(0, 0, 0, 0.7);
     border-radius: 10px;
     position: relative;
@@ -49,8 +49,9 @@
            gap: 15px;
        }
        .disclaimer {
-    position: fixed;
-    bottom: 140px;
+        position: absolute; 
+        bottom: -30px;
+        width: 100%;
     left: 50%;
     transform: translateX(-50%);
     color: white;
@@ -119,6 +120,7 @@
 
        .chat-container {
     display: flex;
+    padding-top: 100px;
     max-width: 1800px;
     width: 95%;
     height: calc(90vh - 60px);
@@ -138,11 +140,26 @@
     display: flex;
     flex-direction: column;
     height: 740px;
-    width: 800px;
+    width: 35%;
     max-width: 800px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: -20px;
     margin-right: 20px;
+}
+
+.input-container {
+    display: flex;
+    gap: 10px;
+}
+
+.send-btn {
+    background: #FF5350;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-family: 'Press Start 2P', system-ui;
+    cursor: pointer;
 }
 
 .message {
@@ -177,6 +194,7 @@
 
 .chat-input {
     background: rgba(0, 0, 0, 0.3);
+    font-family: 'Press Start 2P', system-ui;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     padding: 12px;
@@ -241,6 +259,9 @@
         <div id="container">
             <div id="loading">Transforming...</div>
             <div id="status"></div>
+        </div>
+        <div class="dialog-box">
+            <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
             <div class="disclaimer">
                 Please allow up to 1 minute for 3D object generation
             </div>
@@ -252,14 +273,15 @@
                 </div>
             </div>
             <div class="input-container">
-                <input type="text" class="chat-input" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
+                <input type="text" class="chat-input" placeholder="Chat with DittoAI..." onkeydown="handleChatInput(event)">
+                <button class="send-btn">Send</button>
             </div>
             <button class="download-btn">Download Model</button>
             <div class="progress-bar">
                 <div class="progress-fill"></div>
             </div>
         </div>
-    </div>
+     </div>
     <script>
         const SYSTEM_PROMPT = `You are DittoAI, based on the Pokemon Ditto. You're a shapeshifting expert in 3D modeling and digital art. You have extensive knowledge of:
 - 3D modeling software (Blender, Maya, 3DS Max)
