@@ -606,8 +606,44 @@ Response style:
             updateProgress(status === 'SUCCEEDED' ? 100 : 50);
             if (status === 'SUCCEEDED') {
                 downloadUrl = statusData.model_urls.glb;
-                await loadNewModel(downloadUrl);
-                document.querySelector('.animate-btn').style.display = 'block';
+                const localUrl = await downloadAndCreateBlob(downloadUrl);
+                
+                const loader = new THREE.GLTFLoader();
+                loader.load(localUrl, (gltf) => {
+                    URL.revokeObjectURL(localUrl);
+                    if (currentModel) scene.remove(currentModel);
+                    
+                    const newModel = gltf.scene;
+                    currentModel = newModel;
+                    scene.add(newModel);
+                    newModel.scale.set(0, 0, 0);
+                    
+                    // Add the Ditto disappearing animation
+                    gsap.to(dittoModel.scale, {
+                        x: 0, y: 0, z: 0,
+                        duration: 1,
+                        ease: "power2.in"
+                    });
+
+                    // Then scale up the new model
+                    gsap.to(newModel.scale, {
+                        x: 2, y: 2, z: 2,
+                        duration: 1,
+                        delay: 1,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            gsap.to(newModel.rotation, {
+                                y: Math.PI * 2,
+                                duration: 2,
+                                ease: "power1.inOut"
+                            });
+                            document.querySelector('.animate-btn').style.display = 'block';
+                            document.querySelector('.download-btn').style.display = 'block';
+                            document.querySelector('.download-btn').style.pointerEvents = 'auto';
+                            document.querySelector('.download-btn').style.zIndex = '1001';
+                        }
+                    });
+                });
                 return;
             }
             await new Promise(r => setTimeout(r, 2000));
