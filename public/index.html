@@ -951,11 +951,12 @@ document.querySelector('.close-btn').onclick = function() {
     document.querySelector('.overlay').style.display = 'none';
 }
 
-// Update your click handlers
-document.querySelector('.overlay').addEventListener('click', function(event) {
-    if (event.target === this) {
-        document.querySelector('.animation-preview').style.display = 'none';
-        document.querySelector('.overlay').style.display = 'none';
+window.addEventListener('click', function(event) {
+    const overlay = document.querySelector('.overlay');
+    const animationPreview = document.querySelector('.animation-preview');
+    if (event.target === overlay) {
+        overlay.style.display = 'none';
+        animationPreview.style.display = 'none';
     }
 });
     </script>
