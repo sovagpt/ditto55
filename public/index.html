@@ -228,6 +228,89 @@
            box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
            white-space: nowrap;
        }
+       .animate-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.animate-title {
+    color: white;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rig-section {
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.rig-text {
+    color: #999;
+    margin-bottom: 15px;
+}
+
+.rig-btn {
+    background: #B4FF39;
+    color: black;
+    padding: 12px 100px;
+    border: none;
+    border-radius: 25px;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.rig-btn:hover {
+    transform: scale(1.05);
+}
+
+.category-tabs {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    overflow-x: auto;
+}
+
+.tab-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab-btn.active {
+    background: #B4FF39;
+    color: black;
+}
+
+.animation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.model-preview {
+    aspect-ratio: 1;
+    background: #333;
+    position: relative;
+}
+
+.model-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
        .transform-btn:hover {
            transform: scale(1.05);
@@ -879,42 +962,40 @@ document.querySelector('.overlay').onclick = function() {
     </script>
     <div class="overlay" id="overlay"></div>
     <div class="animation-preview">
-        <button class="close-btn">×</button>
-        <h2>Coming Soon: Animation Library</h2>
+        <div class="animate-header">
+            <span class="animate-title">Animate</span>
+            <button class="close-btn">×</button>
+        </div>
         
-        <div class="animation-category">
-            <h3>Walk & Run</h3>
-            <div class="animation-list">
-                <div class="animation-item">
-                    Touch and Run <span class="new-badge">NEW</span>
-                </div>
-                <div class="animation-item">
-                    Slow Orc Walk <span class="new-badge">NEW</span>
-                </div>
-                <div class="animation-item">
-                    Skip Forward <span class="new-badge">NEW</span>
-                </div>
-                <div class="animation-item">
-                    Red Carpet Walk <span class="new-badge">NEW</span>
-                </div>
-            </div>
+        <div class="rig-section">
+            <p class="rig-text">Rig the model to animate</p>
+            <button class="rig-btn">Rig</button>
         </div>
     
-        <div class="animation-category">
-            <h3>Daily Actions</h3>
-            <div class="animation-list">
+        <div class="animation-categories">
+            <div class="category-tabs">
+                <button class="tab-btn active">All</button>
+                <button class="tab-btn">Body Movements</button>
+                <button class="tab-btn">Daily Actions</button>
+                <button class="tab-btn">Dancing</button>
+                <button class="tab-btn">Fighting</button>
+                <button class="tab-btn">Walk & Run</button>
+            </div>
+    
+            <div class="animation-grid">
                 <div class="animation-item">
-                    Walking with Phone <span class="new-badge">NEW</span>
+                    <div class="model-preview">
+                        <span class="new-badge">NEW</span>
+                    </div>
+                    <p>Walking with Phone</p>
                 </div>
                 <div class="animation-item">
-                    Unsteady Walk <span class="new-badge">NEW</span>
+                    <div class="model-preview">
+                        <span class="new-badge">NEW</span>
+                    </div>
+                    <p>Unsteady Walk</p>
                 </div>
-                <div class="animation-item">
-                    Texting Walk <span class="new-badge">NEW</span>
-                </div>
-                <div class="animation-item">
-                    Thoughtful Walk <span class="new-badge">NEW</span>
-                </div>
+                <!-- Add more animation items as needed -->
             </div>
         </div>
     </div>
