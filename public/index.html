@@ -31,6 +31,16 @@
            align-items: center;
        }
 
+       .animation-options {
+    position: absolute;
+    bottom: 120px;
+    left: 400px;
+    transform: translateX(-50%);
+    display: none;
+    gap: 10px;
+    z-index: 1002;
+}
+
        .header {
            background: rgba(255, 255, 255, 0.2);
            display: flex;
@@ -348,6 +358,12 @@
             <button onclick="rigModel()" class="animate-btn">Animate/Rig</button>
             <button class="download-btn">Download Model</button>
         </div>
+        <div class="animation-options" style="display: none;">
+            <button onclick="animate('dance')" class="transform-btn">Dance</button>
+            <button onclick="animate('walk')" class="transform-btn">Walk</button>
+            <button onclick="animate('run')" class="transform-btn">Run</button>
+            <button onclick="animate('idle')" class="transform-btn">Idle</button>
+        </div>
 
         <div class="dialog-box">
             <div class="input-group">
@@ -485,35 +501,59 @@ Response style:
         }
 
         async function rigModel() {
-            if (!downloadUrl) return;
-            updateProgress(0);
-            document.getElementById('status').textContent = 'Rigging model...';
-            document.getElementById('status').style.display = 'block';
-            
-            try {
-                const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/rig`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${MESHY_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        model_url: downloadUrl
-                    })
-                });
+    if (!downloadUrl) return;
+    updateProgress(0);
+    document.getElementById('status').textContent = 'Adding animation...';
+    document.getElementById('status').style.display = 'block';
+    
+    try {
+        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/animate`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${MESHY_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model_url: downloadUrl,
+                animation_type: "dance", // Can be: "dance", "walk", "run", "idle"
+                duration: 3.0 // Animation duration in seconds
+            })
+        });
 
-                if (!response.ok) throw new Error('Rigging failed');
-                const data = await response.json();
-                await checkTaskStatus(data.task_id, 'Rigging');
-                downloadUrl = data.model_url;
-                await loadNewModel(downloadUrl);
-            } catch (error) {
-                console.error('Rig error:', error);
-                document.getElementById('status').textContent = 'Rigging failed';
-            } finally {
-                document.getElementById('status').style.display = 'none';
-            }
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error:', errorText);
+            throw new Error('Animation failed');
         }
+
+        const data = await response.json();
+        const taskId = data.result;
+        let status;
+
+        do {
+            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/animate/${taskId}`, {
+                headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+            });
+            const statusData = await statusResponse.json();
+            status = statusData.status;
+            document.getElementById('status').textContent = `Animating: ${status}`;
+            updateProgress(status === 'SUCCEEDED' ? 100 : 50);
+            
+            if (status === 'SUCCEEDED') {
+                downloadUrl = statusData.model_urls.glb;
+                await loadNewModel(downloadUrl, true); // Added parameter to enable animation
+                return;
+            }
+            await new Promise(r => setTimeout(r, 2000));
+        } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+    } catch (error) {
+        console.error('Animation error:', error);
+        document.getElementById('status').textContent = 'Animation failed';
+    } finally {
+        document.getElementById('status').style.display = 'none';
+    }
+}
 
         async function imageToModel(file) {
     updateProgress(0);
@@ -599,28 +639,36 @@ Response style:
             if (status !== 'SUCCEEDED') throw new Error(`${operation} failed`);
         }
 
-        async function loadNewModel(modelUrl) {
-            const localUrl = await downloadAndCreateBlob(modelUrl);
-            const loader = new THREE.GLTFLoader();
+        async function loadNewModel(modelUrl, shouldAnimate = false) {
+    const localUrl = await downloadAndCreateBlob(modelUrl);
+    const loader = new THREE.GLTFLoader();
+    
+    return new Promise((resolve, reject) => {
+        loader.load(localUrl, (gltf) => {
+            URL.revokeObjectURL(localUrl);
+            if (currentModel) scene.remove(currentModel);
             
-            return new Promise((resolve, reject) => {
-                loader.load(localUrl, (gltf) => {
-                    URL.revokeObjectURL(localUrl);
-                    if (currentModel) scene.remove(currentModel);
-                    
-                    const newModel = gltf.scene;
-                    currentModel = newModel;
-                    scene.add(newModel);
-                    
-                    gsap.fromTo(newModel.scale, 
-                        {x: 0, y: 0, z: 0},
-                        {x: 2, y: 2, z: 2, duration: 1, ease: "power2.out"}
-                    );
-                    
-                    resolve();
-                }, undefined, reject);
-            });
-        }
+            const newModel = gltf.scene;
+            currentModel = newModel;
+            scene.add(newModel);
+            
+            // Handle animation if present
+            if (shouldAnimate && gltf.animations && gltf.animations.length > 0) {
+                mixer = new THREE.AnimationMixer(newModel);
+                const animation = gltf.animations[0];
+                const action = mixer.clipAction(animation);
+                action.play();
+            }
+            
+            gsap.fromTo(newModel.scale, 
+                {x: 0, y: 0, z: 0},
+                {x: 2, y: 2, z: 2, duration: 1, ease: "power2.out"}
+            );
+            
+            resolve();
+        }, undefined, reject);
+    });
+}
 
         document.getElementById('imageUpload')?.addEventListener('change', (event) => {
             const file = event.target.files[0];
@@ -641,6 +689,38 @@ Response style:
             }
             type();
         }
+
+        async function animate(type) {
+    if (!downloadUrl) return;
+    const currentUrl = downloadUrl; // Store current URL
+    document.getElementById('status').textContent = `Adding ${type} animation...`;
+    document.getElementById('status').style.display = 'block';
+    
+    try {
+        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/animate`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${MESHY_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model_url: currentUrl,
+                animation_type: type,
+                duration: 3.0
+            })
+        });
+
+        if (!response.ok) throw new Error('Animation failed');
+        
+        const data = await response.json();
+        await checkTaskStatus(data.result, 'Animating');
+        downloadUrl = statusData.model_urls.glb;
+        await loadNewModel(downloadUrl, true);
+    } catch (error) {
+        console.error(`${type} animation error:`, error);
+        document.getElementById('status').textContent = `${type} animation failed`;
+    }
+}
 
         function addMessage(text, type) {
             const messages = document.querySelector('.chat-messages');
