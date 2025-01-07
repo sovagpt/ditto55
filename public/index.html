@@ -952,12 +952,12 @@ document.querySelector('.close-btn').onclick = function() {
 }
 
 // Update your click handlers
-document.querySelector('.overlay').onclick = function(event) {
-    if (event.target === document.querySelector('.overlay')) {
+document.querySelector('.overlay').addEventListener('click', function(event) {
+    if (event.target === this) {
         document.querySelector('.animation-preview').style.display = 'none';
         document.querySelector('.overlay').style.display = 'none';
     }
-}
+});
     </script>
     <div class="overlay" id="overlay"></div>
     <div class="animation-preview">
@@ -969,13 +969,6 @@ document.querySelector('.overlay').onclick = function(event) {
         <div class="rig-section">
             <p class="rig-text">Rig the model to animate</p>
             <button class="rig-btn">Rig</button>
-        </div>
-
-        <div class="category-tabs">
-            <button class="tab-btn active">All</button>
-            <button class="tab-btn">Dancing</button>
-            <button class="tab-btn">Fighting</button>
-            <button class="tab-btn">Walk & Run</button>
         </div>
     
         <div class="animation-grid">
