@@ -141,6 +141,17 @@
     font-size: 8px;
 }
 
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    z-index: 1001;
+}
+
 .close-btn {
     position: absolute;
     top: 10px;
@@ -849,15 +860,24 @@ Response style:
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
 
-        // Update this in your existing code
+// Update your click handlers
 document.querySelector('.animate-btn').onclick = function() {
     document.querySelector('.animation-preview').style.display = 'block';
+    document.querySelector('.overlay').style.display = 'block';
 }
 
 document.querySelector('.close-btn').onclick = function() {
     document.querySelector('.animation-preview').style.display = 'none';
+    document.querySelector('.overlay').style.display = 'none';
+}
+
+// Add click handler for the overlay
+document.querySelector('.overlay').onclick = function() {
+    document.querySelector('.animation-preview').style.display = 'none';
+    document.querySelector('.overlay').style.display = 'none';
 }
     </script>
+    <div class="overlay" id="overlay"></div>
     <div class="animation-preview">
         <button class="close-btn">×</button>
         <h2>Coming Soon: Animation Library</h2>
