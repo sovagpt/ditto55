@@ -67,16 +67,58 @@
             position: fixed;
             background: rgba(166, 100, 165, 0.9);
             color: white;
-            padding: 10px;
-            border-radius: 5px;
+            padding: 15px;
+            border-radius: 8px;
             font-family: 'Press Start 2P', system-ui;
             font-size: 12px;
-            pointer-events: none;
+            pointer-events: auto;
             display: none;
             z-index: 1000;
             max-width: 300px;
             word-wrap: break-word;
             line-height: 1.5;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .model-info .download-btn {
+            background: #3B4CCA;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Press Start 2P', system-ui;
+            font-size: 10px;
+            margin-top: 12px;
+            width: 100%;
+            transition: transform 0.2s;
+            box-shadow: 0 0 10px rgba(59, 76, 202, 0.3);
+        }
+
+        .model-info .download-btn:hover {
+            transform: scale(1.05);
+            background: #2A3BBB;
+        }
+
+        .model-info img {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            max-width: 100%;
+            height: auto;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .model-info-prompt {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .model-info-date {
+            margin-bottom: 8px;
+            font-size: 10px;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -97,9 +139,30 @@
         const mouse = new THREE.Vector2();
         let hoveredModel = null;
 
+        async function downloadModel(modelUrl) {
+            try {
+                const proxyUrl = `/api/proxy?url=${encodeURIComponent(modelUrl)}`;
+                const response = await fetch(proxyUrl, {
+                    headers: {
+                        'Accept': 'model/gltf-binary'
+                    }
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'community-model.glb';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            } catch (error) {
+                console.error('Download failed:', error);
+            }
+        }
+
         async function init() {
             console.log('Initializing scene...');
-            // Scene setup
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0xffffff);
             
@@ -111,7 +174,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
-            // Lighting
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
             
@@ -119,12 +181,10 @@
             directionalLight.position.set(10, 10, 10);
             scene.add(directionalLight);
 
-            // Controls
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
 
-            // Load 3D Text
             const fontLoader = new THREE.FontLoader();
             fontLoader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function(font) {
                 const textGeometry = new THREE.TextGeometry('Community Creations', {
@@ -205,11 +265,12 @@
 
                         const model = gltf.scene;
                         
-                        // Apply userData to model and all its children
                         model.traverse((child) => {
                             child.userData = {
                                 prompt: modelData.prompt,
-                                created: new Date(modelData.timestamp).toLocaleDateString()
+                                created: new Date(modelData.timestamp).toLocaleDateString(),
+                                modelUrl: modelData.modelUrl,
+                                imageUrl: modelData.imageUrl
                             };
                         });
 
@@ -255,8 +316,12 @@
                 if (hoveredModel) {
                     modelInfo.style.display = 'block';
                     modelInfo.innerHTML = `
-                        <div style="margin-bottom: 8px;">Prompt: ${hoveredModel.userData.prompt}</div>
-                        <div>Created: ${hoveredModel.userData.created}</div>
+                        <div class="model-info-prompt">Prompt: ${hoveredModel.userData.prompt}</div>
+                        <div class="model-info-date">Created: ${hoveredModel.userData.created}</div>
+                        ${hoveredModel.userData.imageUrl ? 
+                            `<img src="${hoveredModel.userData.imageUrl}" alt="Source image">` 
+                            : ''}
+                        <button onclick="downloadModel('${hoveredModel.userData.modelUrl}')" class="download-btn">Download Model</button>
                     `;
                 } else {
                     modelInfo.style.display = 'none';
@@ -267,6 +332,10 @@
                 modelInfo.style.left = event.clientX + 20 + 'px';
                 modelInfo.style.top = event.clientY + 'px';
             }
+        });
+
+        document.getElementById('modelInfo').addEventListener('click', (event) => {
+            event.stopPropagation();
         });
 
         function animate() {
