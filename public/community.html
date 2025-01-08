@@ -80,6 +80,11 @@
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
         }
 
+        .model-info.pinned {
+            display: block !important;
+            pointer-events: auto;
+        }
+
         .model-info .download-btn {
             background: #3B4CCA;
             color: white;
@@ -295,7 +300,28 @@
             }
         }
 
+        // Add click handler for the entire window
+        window.addEventListener('click', (event) => {
+            const modelInfo = document.getElementById('modelInfo');
+            
+            // If clicking outside the model info when it's pinned, unpin it
+            if (modelInfo.classList.contains('pinned') && 
+                !modelInfo.contains(event.target) && 
+                !event.target.closest('.model-info')) {
+                modelInfo.classList.remove('pinned');
+                modelInfo.style.display = 'none';
+            }
+        });
+
+        // Update the mousemove handler
         window.addEventListener('mousemove', (event) => {
+            const modelInfo = document.getElementById('modelInfo');
+            
+            // Don't do hover effects if the info is pinned
+            if (modelInfo.classList.contains('pinned')) {
+                return;
+            }
+            
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
             
@@ -310,7 +336,6 @@
                 }
             }
             
-            const modelInfo = document.getElementById('modelInfo');
             if (foundModel !== hoveredModel) {
                 hoveredModel = foundModel;
                 if (hoveredModel) {
@@ -323,7 +348,7 @@
                             : ''}
                         <button onclick="downloadModel('${hoveredModel.userData.modelUrl}')" class="download-btn">Download Model</button>
                     `;
-                } else {
+                } else if (!modelInfo.classList.contains('pinned')) {
                     modelInfo.style.display = 'none';
                 }
             }
@@ -334,8 +359,41 @@
             }
         });
 
-        document.getElementById('modelInfo').addEventListener('click', (event) => {
-            event.stopPropagation();
+        // Add click handler for the models
+        window.addEventListener('click', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children, true);
+            
+            const modelInfo = document.getElementById('modelInfo');
+            
+            if (intersects.length > 0) {
+                const intersectedObject = intersects[0].object;
+                if (intersectedObject.userData && intersectedObject.userData.prompt) {
+                    // Pin the model info
+                    modelInfo.classList.add('pinned');
+                    hoveredModel = intersectedObject;
+                    
+                    // Update content
+                    modelInfo.innerHTML = `
+                        <div class="model-info-prompt">Prompt: ${hoveredModel.userData.prompt}</div>
+                        <div class="model-info-date">Created: ${hoveredModel.userData.created}</div>
+                        ${hoveredModel.userData.imageUrl ? 
+                            `<img src="${hoveredModel.userData.imageUrl}" alt="Source image">` 
+                            : ''}
+                        <button onclick="downloadModel('${hoveredModel.userData.modelUrl}')" class="download-btn">Download Model</button>
+                    `;
+                    
+                    // Position the info panel
+                    modelInfo.style.left = event.clientX + 20 + 'px';
+                    modelInfo.style.top = event.clientY + 'px';
+                    modelInfo.style.display = 'block';
+                    
+                    event.stopPropagation();
+                }
+            }
         });
 
         function animate() {
