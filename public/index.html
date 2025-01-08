@@ -942,22 +942,33 @@ Response style:
         };
 
 // Update your click handlers
-document.querySelector('.animate-btn').onclick = function() {
-    document.querySelector('.animation-preview').style.display = 'block';
-    document.querySelector('.overlay').style.display = 'block';
-}
-
-document.querySelector('.close-btn').onclick = function() {
-    document.querySelector('.animation-preview').style.display = 'none';
-    document.querySelector('.overlay').style.display = 'none';
-}
-
-window.addEventListener('click', function(event) {
-    const overlay = document.querySelector('.overlay');
+document.querySelector('.animate-btn').addEventListener('click', function() {
     const animationPreview = document.querySelector('.animation-preview');
-    if (event.target === overlay) {
-        overlay.style.display = 'none';
+    const overlay = document.querySelector('.overlay');
+    if (animationPreview && overlay) {
+        animationPreview.style.display = 'block';
+        overlay.style.display = 'block';
+    }
+});
+
+document.querySelector('.close-btn').addEventListener('click', function() {
+    const animationPreview = document.querySelector('.animation-preview');
+    const overlay = document.querySelector('.overlay');
+    if (animationPreview && overlay) {
         animationPreview.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+});
+
+// Fix for overlay click handling
+document.querySelector('.overlay').addEventListener('click', function(event) {
+    // Only proceed if we actually clicked the overlay itself
+    if (event.target === this) {
+        const animationPreview = document.querySelector('.animation-preview');
+        if (animationPreview) {
+            animationPreview.style.display = 'none';
+            this.style.display = 'none';
+        }
     }
 });
     </script>
