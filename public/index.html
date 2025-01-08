@@ -152,6 +152,7 @@
     background: rgba(0, 0, 0, 0.5);
     display: none;
     z-index: 1001;
+    cursor: pointer;
 }
 
 .close-btn {
@@ -469,6 +470,24 @@ input::placeholder {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
     padding: 20px;
+}
+
+.animation-preview {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    z-index: 1002;
+    width: 400px;
+    display: none;
+    box-shadow: 0 0 20px rgba(59, 76, 202, 0.5);
+    pointer-events: auto;
 }
 
 .model-preview {
@@ -960,15 +979,20 @@ document.querySelector('.close-btn').addEventListener('click', function() {
     }
 });
 
-// Fix for overlay click handling
-document.querySelector('.overlay').addEventListener('click', function(event) {
-    // Only proceed if we actually clicked the overlay itself
-    if (event.target === this) {
-        const animationPreview = document.querySelector('.animation-preview');
-        if (animationPreview) {
-            animationPreview.style.display = 'none';
-            this.style.display = 'none';
-        }
+// Updated overlay click handler
+document.addEventListener('DOMContentLoaded', function() {
+    const overlay = document.querySelector('.overlay');
+    if (overlay) {
+        overlay.addEventListener('click', function(event) {
+            // Make sure we're clicking the overlay itself
+            if (event.target === overlay) {
+                const animationPreview = document.querySelector('.animation-preview');
+                if (animationPreview) {
+                    animationPreview.style.display = 'none';
+                    overlay.style.display = 'none';
+                }
+            }
+        });
     }
 });
     </script>
