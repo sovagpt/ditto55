@@ -204,8 +204,8 @@
 }
 
 .showcase-item {
-    min-width: calc(100vw - 80px);  /* Full viewport width minus some padding */
-    height: 400px;
+    min-width: 300px;  /* Back to original size */
+    height: 300px;     /* Back to original size */
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -237,7 +237,7 @@
         transform: translateX(0);
     }
     100% {
-        transform: translateX(calc(-100% - 40px)); /* Full width plus gap */
+        transform: translateX(calc(-1660px)); /* Adjusted for 5 items (300px * 5 + 40px gap * 4) */
     }
 }
 
