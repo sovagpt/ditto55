@@ -29,7 +29,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-right: 20px;
 }
 
 .header {
@@ -152,7 +151,6 @@
     background: rgba(0, 0, 0, 0.5);
     display: none;
     z-index: 1001;
-    cursor: pointer;
 }
 
 .close-btn {
@@ -184,7 +182,7 @@
 .dialog-box {
     position: absolute;
     bottom: 10px;
-    left: 50%;
+    left: 25%;
     transform: translateX(-50%);
     width: 400px;
     background: rgba(0, 0, 0, 0.7);
@@ -203,24 +201,22 @@
     position: relative;
 }
 
-.dialog-box {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 400px;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 10px;
-    z-index: 1000;
+.dialog-box input {
+    flex: 1;
+    padding: 2px 10px;
+    height: 12px;
+    padding-right: 120px;
+    color: white;
+    background: transparent;
+    border: none;
     font-family: 'Press Start 2P', system-ui;
-    box-shadow: 0 0 20px rgba(59, 76, 202, 0.5);
+    font-size: 12px;
+    outline: none;
 }
 
 .transform-btn {
     position: absolute;
-    right: -120px;
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     background: #3B4CCA;
@@ -251,8 +247,8 @@ input::placeholder {
 
 .progress-bar {
     position: absolute;
-    top: 50%;
-    left: 50%;
+    top: 30%;
+    left: 25%;
     transform: translate(-50%, -50%);
     width: 200px;
     height: 20px;
@@ -260,6 +256,7 @@ input::placeholder {
     border: 3px solid #3B4CCA;
     background: #FFDE00;
     border-radius: 10px;
+    display: none;
     box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
 }
 
@@ -275,7 +272,7 @@ input::placeholder {
 .animate-btn {
     position: absolute;
     bottom: 20px;
-    left: calc(50% - 120px);
+    left: calc(25% - 60px);
     padding: 10px 20px;
     background: #3B4CCA;
     color: white;
@@ -291,7 +288,7 @@ input::placeholder {
 .download-btn {
     position: absolute;
     bottom: 20px;
-    left: calc(50% + 20px);
+    left: calc(75% - 60px);
     padding: 10px 20px;
     background: #3B4CCA;
     color: white;
@@ -315,7 +312,7 @@ input::placeholder {
     width: 95%;
     height: calc(90vh - 60px);
     gap: 30px;
-    justify-content: center;
+    justify-content: space-between;
     align-items: flex-start;
     margin: auto;
     padding-top: 140px;
@@ -389,18 +386,16 @@ input::placeholder {
     cursor: pointer;
 }
 
-#status {
-    position: absolute;
-    bottom: 70px;
+#loading, #status { 
+    position: fixed;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
     color: white;
     font-size: 16px;
+    display: none;
     font-family: 'Press Start 2P', system-ui;
     text-shadow: 2px 2px 0 #3B4CCA;
-    text-align: center;
-    width: 100%;
-    z-index: 1000;
 }
 
 .animate-header {
@@ -473,24 +468,6 @@ input::placeholder {
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 20px;
     padding: 20px;
-}
-
-.animation-preview {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 20px;
-    color: white;
-    font-family: 'Press Start 2P', system-ui;
-    z-index: 1002;
-    width: 400px;
-    display: none;
-    box-shadow: 0 0 20px rgba(59, 76, 202, 0.5);
-    pointer-events: auto;
 }
 
 .model-preview {
@@ -964,40 +941,21 @@ Response style:
         };
 
 // Update your click handlers
-document.querySelector('.animate-btn').addEventListener('click', function() {
-    const animationPreview = document.querySelector('.animation-preview');
-    const overlay = document.querySelector('.overlay');
-    if (animationPreview && overlay) {
-        animationPreview.style.display = 'block';
-        overlay.style.display = 'block';
-    }
-});
+document.querySelector('.animate-btn').onclick = function() {
+    document.querySelector('.animation-preview').style.display = 'block';
+    document.querySelector('.overlay').style.display = 'block';
+}
 
-document.querySelector('.close-btn').addEventListener('click', function() {
-    const animationPreview = document.querySelector('.animation-preview');
-    const overlay = document.querySelector('.overlay');
-    if (animationPreview && overlay) {
-        animationPreview.style.display = 'none';
-        overlay.style.display = 'none';
-    }
-});
+document.querySelector('.close-btn').onclick = function() {
+    document.querySelector('.animation-preview').style.display = 'none';
+    document.querySelector('.overlay').style.display = 'none';
+}
 
-// Updated overlay click handler
-document.addEventListener('DOMContentLoaded', function() {
-    const overlay = document.querySelector('.overlay');
-    if (overlay) {
-        overlay.addEventListener('click', function(event) {
-            // Make sure we're clicking the overlay itself
-            if (event.target === overlay) {
-                const animationPreview = document.querySelector('.animation-preview');
-                if (animationPreview) {
-                    animationPreview.style.display = 'none';
-                    overlay.style.display = 'none';
-                }
-            }
-        });
-    }
-});
+// Add click handler for the overlay
+document.querySelector('.overlay').onclick = function() {
+    document.querySelector('.animation-preview').style.display = 'none';
+    document.querySelector('.overlay').style.display = 'none';
+}
     </script>
     <div class="overlay" id="overlay"></div>
     <div class="animation-preview">
@@ -1011,18 +969,30 @@ document.addEventListener('DOMContentLoaded', function() {
             <button class="rig-btn">Rig</button>
         </div>
     
-        <div class="animation-grid">
-            <div class="animation-item">
-                <div class="model-preview">
-                    <span class="new-badge">NEW</span>
-                </div>
-                <p>Walking with Phone</p>
+        <div class="animation-categories">
+            <div class="category-tabs">
+                <button class="tab-btn active">All</button>
+                <button class="tab-btn">Body Movements</button>
+                <button class="tab-btn">Daily Actions</button>
+                <button class="tab-btn">Dancing</button>
+                <button class="tab-btn">Fighting</button>
+                <button class="tab-btn">Walk & Run</button>
             </div>
-            <div class="animation-item">
-                <div class="model-preview">
-                    <span class="new-badge">NEW</span>
+    
+            <div class="animation-grid">
+                <div class="animation-item">
+                    <div class="model-preview">
+                        <span class="new-badge">NEW</span>
+                    </div>
+                    <p>Walking with Phone</p>
                 </div>
-                <p>Unsteady Walk</p>
+                <div class="animation-item">
+                    <div class="model-preview">
+                        <span class="new-badge">NEW</span>
+                    </div>
+                    <p>Unsteady Walk</p>
+                </div>
+                <!-- Add more animation items as needed -->
             </div>
         </div>
     </div>
