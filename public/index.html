@@ -951,11 +951,14 @@ document.querySelector('.close-btn').onclick = function() {
     document.querySelector('.overlay').style.display = 'none';
 }
 
-// Add click handler for the overlay
-document.querySelector('.overlay').onclick = function() {
-    document.querySelector('.animation-preview').style.display = 'none';
-    document.querySelector('.overlay').style.display = 'none';
-}
+window.addEventListener('click', function(event) {
+    const overlay = document.querySelector('.overlay');
+    const animationPreview = document.querySelector('.animation-preview');
+    if (event.target === overlay) {
+        overlay.style.display = 'none';
+        animationPreview.style.display = 'none';
+    }
+});
     </script>
     <div class="overlay" id="overlay"></div>
     <div class="animation-preview">
@@ -969,30 +972,18 @@ document.querySelector('.overlay').onclick = function() {
             <button class="rig-btn">Rig</button>
         </div>
     
-        <div class="animation-categories">
-            <div class="category-tabs">
-                <button class="tab-btn active">All</button>
-                <button class="tab-btn">Body Movements</button>
-                <button class="tab-btn">Daily Actions</button>
-                <button class="tab-btn">Dancing</button>
-                <button class="tab-btn">Fighting</button>
-                <button class="tab-btn">Walk & Run</button>
+        <div class="animation-grid">
+            <div class="animation-item">
+                <div class="model-preview">
+                    <span class="new-badge">NEW</span>
+                </div>
+                <p>Walking with Phone</p>
             </div>
-    
-            <div class="animation-grid">
-                <div class="animation-item">
-                    <div class="model-preview">
-                        <span class="new-badge">NEW</span>
-                    </div>
-                    <p>Walking with Phone</p>
+            <div class="animation-item">
+                <div class="model-preview">
+                    <span class="new-badge">NEW</span>
                 </div>
-                <div class="animation-item">
-                    <div class="model-preview">
-                        <span class="new-badge">NEW</span>
-                    </div>
-                    <p>Unsteady Walk</p>
-                </div>
-                <!-- Add more animation items as needed -->
+                <p>Unsteady Walk</p>
             </div>
         </div>
     </div>
