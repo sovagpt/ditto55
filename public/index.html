@@ -15,7 +15,8 @@
            background-size: cover;
        }
 
-       #container {
+       
+#container {
     width: 800px;
     height: 740px;
     background-color: rgba(0, 0, 0, 0.7);
@@ -24,7 +25,7 @@
     overflow: hidden;
     transition: all 0.3s ease;
     margin-top: -20px;
-    margin-bottom: 30px; /* Reduced to bring dialog box closer */
+    margin-bottom: 15px; /* Reduced from 30px to bring dialog box closer */
     border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: center;
@@ -180,8 +181,8 @@
 
        .dialog-box {
     position: absolute;
-    bottom: -40px; /* Moved up */
-    left: calc(50% + 40px); /* Added 40px to move right */
+    bottom: -30px; /* Moved up from -40px */
+    left: calc(50% + 20px); /* Reduced from 40px to move left */
     transform: translateX(-50%);
     width: 500px;
     background: rgba(0, 0, 0, 0.7);
@@ -331,7 +332,7 @@
     justify-content: center;
     align-items: flex-start;
     margin: auto;
-    padding-top: 100px;
+    padding-top: 100px; /* Increased from 80px to move terminals down slightly */
     margin-bottom: 60px;
 }
 
