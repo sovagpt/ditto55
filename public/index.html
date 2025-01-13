@@ -541,7 +541,6 @@ Response style:
 
         async function handleAIResponse(message) {
     try {
-        // Show loading state
         const messagesContainer = document.querySelector('.chat-messages');
         const loadingMessage = document.createElement('div');
         loadingMessage.classList.add('message', 'assistant-message');
@@ -578,7 +577,6 @@ Response style:
         addMessage('Sorry, I encountered an error. Please try again. ~', 'assistant');
     }
 }
-
 
         async function imageToModel(file) {
     updateProgress(0);
@@ -818,8 +816,30 @@ function addMessage(message, type) {
     const messagesContainer = document.querySelector('.chat-messages');
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', `${type}-message`);
-    messageDiv.textContent = message;
     messagesContainer.appendChild(messageDiv);
+    
+    // Only apply typewriter effect to assistant messages
+    if (type === 'assistant') {
+        let i = 0;
+        messageDiv.textContent = ''; // Start empty
+        
+        function typeNextCharacter() {
+            if (i < message.length) {
+                messageDiv.textContent += message[i];
+                i++;
+                // Scroll to bottom as typing occurs
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                // Random delay between 10ms and 30ms for more natural typing
+                setTimeout(typeNextCharacter, Math.random() * 20 + 10);
+            }
+        }
+        
+        typeNextCharacter();
+    } else {
+        // User messages appear instantly
+        messageDiv.textContent = message;
+    }
+    
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
