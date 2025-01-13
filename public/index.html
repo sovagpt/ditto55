@@ -788,7 +788,32 @@ Response style:
             fill.style.width = `${percent}%`;
         }
 
-        async function transform(promptText) {
+        async function saveToDatabase(modelUrl, prompt) {
+    try {
+        const response = await fetch('/api/community', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                modelUrl,
+                prompt,
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save to database');
+        }
+
+        const data = await response.json();
+        console.log('Saved to database:', data);
+    } catch (error) {
+        console.error('Error saving to database:', error);
+    }
+}
+
+async function transform(promptText) {
     if (!dittoModel) return;
     
     addMessage(`Starting transformation: "${promptText}" ~`, 'assistant');
@@ -892,6 +917,9 @@ Response style:
             updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
 
             if (refineStatus === 'SUCCEEDED' && downloadUrl) {
+                // Save to database with thumbnail
+                await saveToDatabase(downloadUrl, promptText);
+
                 const localUrl = await downloadAndCreateBlob(downloadUrl);
                 
                 const loader = new THREE.GLTFLoader();
