@@ -801,57 +801,97 @@ Response style:
         bar.style.display = 'block';
         downloadBtn.style.display = 'none';
         statusElement.style.display = 'block';
-        statusElement.textContent = 'Transforming...';
+        statusElement.textContent = 'Creating preview...';
         updateProgress(25);
 
-        // Add logging to debug API call
-        console.log('Making API call with prompt:', promptText);
-
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/text-to-3d`, {
+        // Step 1: Create preview task
+        const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                mode: "preview",
                 prompt: promptText,
-                enable_pbr: true,
+                art_style: "realistic",
                 should_remesh: true,
-                should_texture: true,
                 topology: "quad",
-                target_polycount: 30000
+                target_polycount: 30000,
+                symmetry_mode: "auto"
             })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error Response:', errorText);
-            throw new Error(`API Error: ${response.status} - ${errorText}`);
+        if (!previewResponse.ok) {
+            const errorText = await previewResponse.text();
+            console.error('Preview API Error:', errorText);
+            throw new Error(`Preview API Error: ${previewResponse.status} - ${errorText}`);
         }
 
-        const data = await response.json();
-        console.log('Transform response:', data);
+        const previewData = await previewResponse.json();
+        const previewTaskId = previewData.result;
+        console.log('Preview task created:', previewTaskId);
         
-        // Check task status
-        const taskId = data.result;
-        let currentStatus;
-        updateProgress(50);
-        
+        // Step 2: Check preview status until complete
+        let previewStatus;
         do {
-            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/text-to-3d/${taskId}`, {
+            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${previewTaskId}`, {
                 headers: {
-                    'Authorization': `Bearer ${MESHY_API_KEY}`,
-                    'Accept': 'application/json'
+                    'Authorization': `Bearer ${MESHY_API_KEY}`
                 }
             });
             const statusData = await statusResponse.json();
-            currentStatus = statusData.status;
-            statusElement.textContent = `Converting: ${currentStatus}`;
-            updateProgress(currentStatus === 'SUCCEEDED' ? 100 : 75);
+            previewStatus = statusData.status;
+            statusElement.textContent = `Preview: ${previewStatus}`;
+            updateProgress(50);
+            
+            if (previewStatus === 'FAILED') {
+                throw new Error('Preview generation failed');
+            }
+            
+            await new Promise(r => setTimeout(r, 2000));
+        } while (previewStatus === 'PENDING' || previewStatus === 'IN_PROGRESS');
 
-            if (currentStatus === 'SUCCEEDED') {
-                downloadUrl = statusData.model_urls.glb;
+        // Step 3: Create refine task
+        statusElement.textContent = 'Creating final model...';
+        const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${MESHY_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                mode: "refine",
+                preview_task_id: previewTaskId,
+                enable_pbr: true
+            })
+        });
+
+        if (!refineResponse.ok) {
+            const errorText = await refineResponse.text();
+            console.error('Refine API Error:', errorText);
+            throw new Error(`Refine API Error: ${refineResponse.status} - ${errorText}`);
+        }
+
+        const refineData = await refineResponse.json();
+        const refineTaskId = refineData.result;
+        console.log('Refine task created:', refineTaskId);
+
+        // Step 4: Check refine status until complete
+        let refineStatus;
+        do {
+            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineTaskId}`, {
+                headers: {
+                    'Authorization': `Bearer ${MESHY_API_KEY}`
+                }
+            });
+            const statusData = await statusResponse.json();
+            refineStatus = statusData.status;
+            downloadUrl = statusData.model_urls?.glb;
+            statusElement.textContent = `Refining: ${refineStatus}`;
+            updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
+
+            if (refineStatus === 'SUCCEEDED' && downloadUrl) {
                 const localUrl = await downloadAndCreateBlob(downloadUrl);
                 
                 const loader = new THREE.GLTFLoader();
@@ -893,8 +933,13 @@ Response style:
                 addMessage('Transformation complete! You can now download or animate the model. ~', 'assistant');
                 return;
             }
+
+            if (refineStatus === 'FAILED') {
+                throw new Error('Refine process failed');
+            }
+            
             await new Promise(r => setTimeout(r, 2000));
-        } while (currentStatus === 'PENDING' || currentStatus === 'IN_PROGRESS');
+        } while (refineStatus === 'PENDING' || refineStatus === 'IN_PROGRESS');
 
         throw new Error('Transformation failed or timed out');
     } catch (error) {
