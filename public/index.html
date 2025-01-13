@@ -24,7 +24,7 @@
     overflow: hidden;
     transition: all 0.3s ease;
     margin-top: -20px;
-    margin-bottom: 0;
+    margin-bottom: 60px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     justify-content: center;
@@ -180,16 +180,16 @@
 
        .dialog-box {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
+    bottom: -50px; /* Move it below the container */
+    left: 50%;
+    transform: translateX(-50%);
     width: 500px;
-    display: block;
     background: rgba(0, 0, 0, 0.7);
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 10px;
     z-index: 1000;
-    transform: none;
+    display: block;
 }
 
 #prompt {
