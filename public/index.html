@@ -165,10 +165,108 @@
     font-size: 12px;
 }
 
+.showcase-section {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 60px 20px;
+    margin-top: 40px;
+    backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.showcase-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.showcase-title {
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 32px;
+    color: white;
+    text-align: center;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 0 #3B4CCA;
+}
+
+.showcase-slider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.showcase-track {
+    display: flex;
+    gap: 20px;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    padding: 20px 0;
+}
+
+.showcase-item {
+    min-width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s;
+}
+
+.showcase-item:hover {
+    transform: scale(1.05);
+}
+
+.showcase-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 14px;
+}
+
+.slider-btn {
+    background: #3B4CCA;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-family: 'Press Start 2P', system-ui;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(59, 76, 202, 0.5);
+    transition: transform 0.2s;
+}
+
+.slider-btn:hover {
+    transform: scale(1.1);
+    background: #2A3BBB;
+}
+
+.showcase-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.dot.active {
+    background: #3B4CCA;
+}
+
 .info-section {
     background-color: rgba(0, 0, 0, 0.7);
     padding: 60px 20px;
-    margin: -60px auto 0;
+    margin: 40x auto 0;
     backdrop-filter: blur(5px);
     width: 100%;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -504,6 +602,24 @@
             <p class="info-text">
                 DittoAI is a powerful text-to-3D AI model that transforms your text descriptions into high-quality 3D models. Just like the Pokemon Ditto can transform into anything, DittoAI can create any 3D object you can imagine. Whether you need characters, props, or environments for games, animation, or virtual worlds, DittoAI makes the creation process simple and magical.
             </p>
+        </div>
+    </div>
+
+    <div class="showcase-section">
+        <div class="showcase-container">
+            <h2 class="showcase-title">COMMUNITY CREATIONS</h2>
+            <div class="showcase-slider">
+                <button class="slider-btn prev-btn">←</button>
+                <div class="showcase-track">
+                    <!-- Placeholders until you provide the actual images -->
+                    <div class="showcase-item">
+                        <div class="showcase-placeholder">Coming Soon</div>
+                    </div>
+                    <!-- Repeat for total of 10 placeholders -->
+                </div>
+                <button class="slider-btn next-btn">→</button>
+            </div>
+            <div class="showcase-dots"></div>
         </div>
     </div>
 
@@ -1129,6 +1245,52 @@ document.querySelector('.transform-btn').addEventListener('click', () => {
     if (prompt) {
         transform(prompt);
         promptInput.value = '';
+    }
+});
+
+// Showcase slider functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const track = document.querySelector('.showcase-track');
+    const prevBtn = document.querySelector('.prev-btn');
+    const nextBtn = document.querySelector('.next-btn');
+    const items = document.querySelectorAll('.showcase-item');
+    let position = 0;
+    const itemWidth = 320; // 300px width + 20px gap
+    const visibleItems = Math.floor(track.offsetWidth / itemWidth);
+    const maxPosition = -(items.length - visibleItems) * itemWidth;
+
+    prevBtn?.addEventListener('click', () => {
+        position = Math.min(position + itemWidth, 0);
+        track.style.transform = `translateX(${position}px)`;
+        updateDots();
+    });
+
+    nextBtn?.addEventListener('click', () => {
+        position = Math.max(position - itemWidth, maxPosition);
+        track.style.transform = `translateX(${position}px)`;
+        updateDots();
+    });
+
+    // Create dots
+    const dotsContainer = document.querySelector('.showcase-dots');
+    const dotCount = Math.ceil(items.length / visibleItems);
+    for (let i = 0; i < dotCount; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 0 ? ' active' : '');
+        dot.addEventListener('click', () => {
+            position = -i * itemWidth * visibleItems;
+            position = Math.max(position, maxPosition);
+            track.style.transform = `translateX(${position}px)`;
+            updateDots();
+        });
+        dotsContainer.appendChild(dot);
+    }
+
+    function updateDots() {
+        const activeDotIndex = Math.floor(-position / (itemWidth * visibleItems));
+        document.querySelectorAll('.dot').forEach((dot, index) => {
+            dot.classList.toggle('active', index === activeDotIndex);
+        });
     }
 });
     </script>
