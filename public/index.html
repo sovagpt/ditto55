@@ -188,18 +188,16 @@
 }
 
 .showcase-slider {
+    margin-top: 40px;
+    overflow: hidden;
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 20px;
 }
 
 .showcase-track {
     display: flex;
     gap: 20px;
-    overflow-x: hidden;
-    scroll-behavior: smooth;
     padding: 20px 0;
+    animation: slideTrack 20s linear infinite;
 }
 
 .showcase-item {
@@ -209,10 +207,15 @@
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: transform 0.3s;
+    flex-shrink: 0;
 }
 
 .showcase-item:hover {
     transform: scale(1.05);
+}
+
+.showcase-track:hover {
+    animation-play-state: paused;
 }
 
 .showcase-placeholder {
@@ -224,6 +227,15 @@
     color: white;
     font-family: 'Press Start 2P', system-ui;
     font-size: 14px;
+}
+
+@keyframes slideTrack {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(calc(-320px * 5)); /* 5 items, 300px width + 20px gap */
+    }
 }
 
 .slider-btn {
@@ -266,10 +278,11 @@
 .info-section {
     background-color: rgba(0, 0, 0, 0.7);
     padding: 60px 20px;
-    margin: 40x auto 0;
+    margin: 40px auto 0;
     backdrop-filter: blur(5px);
     width: 100%;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden; /* Make sure the slider doesn't cause horizontal scrolling */
 }
 
 .info-container {
@@ -602,24 +615,26 @@
             <p class="info-text">
                 DittoAI is a powerful text-to-3D AI model that transforms your text descriptions into high-quality 3D models. Just like the Pokemon Ditto can transform into anything, DittoAI can create any 3D object you can imagine. Whether you need characters, props, or environments for games, animation, or virtual worlds, DittoAI makes the creation process simple and magical.
             </p>
-        </div>
-    </div>
-
-    <div class="showcase-section">
-        <div class="showcase-container">
-            <h2 class="showcase-title">COMMUNITY CREATIONS</h2>
             <div class="showcase-slider">
-                <button class="slider-btn prev-btn">←</button>
                 <div class="showcase-track">
-                    <!-- Placeholders until you provide the actual images -->
+                    <!-- Examples will automatically repeat - we only need 5 placeholders -->
                     <div class="showcase-item">
                         <div class="showcase-placeholder">Coming Soon</div>
                     </div>
-                    <!-- Repeat for total of 10 placeholders -->
+                    <div class="showcase-item">
+                        <div class="showcase-placeholder">Coming Soon</div>
+                    </div>
+                    <div class="showcase-item">
+                        <div class="showcase-placeholder">Coming Soon</div>
+                    </div>
+                    <div class="showcase-item">
+                        <div class="showcase-placeholder">Coming Soon</div>
+                    </div>
+                    <div class="showcase-item">
+                        <div class="showcase-placeholder">Coming Soon</div>
+                    </div>
                 </div>
-                <button class="slider-btn next-btn">→</button>
             </div>
-            <div class="showcase-dots"></div>
         </div>
     </div>
 
@@ -1248,48 +1263,14 @@ document.querySelector('.transform-btn').addEventListener('click', () => {
     }
 });
 
-// Showcase slider functionality
 document.addEventListener('DOMContentLoaded', () => {
     const track = document.querySelector('.showcase-track');
-    const prevBtn = document.querySelector('.prev-btn');
-    const nextBtn = document.querySelector('.next-btn');
-    const items = document.querySelectorAll('.showcase-item');
-    let position = 0;
-    const itemWidth = 320; // 300px width + 20px gap
-    const visibleItems = Math.floor(track.offsetWidth / itemWidth);
-    const maxPosition = -(items.length - visibleItems) * itemWidth;
-
-    prevBtn?.addEventListener('click', () => {
-        position = Math.min(position + itemWidth, 0);
-        track.style.transform = `translateX(${position}px)`;
-        updateDots();
-    });
-
-    nextBtn?.addEventListener('click', () => {
-        position = Math.max(position - itemWidth, maxPosition);
-        track.style.transform = `translateX(${position}px)`;
-        updateDots();
-    });
-
-    // Create dots
-    const dotsContainer = document.querySelector('.showcase-dots');
-    const dotCount = Math.ceil(items.length / visibleItems);
-    for (let i = 0; i < dotCount; i++) {
-        const dot = document.createElement('div');
-        dot.className = 'dot' + (i === 0 ? ' active' : '');
-        dot.addEventListener('click', () => {
-            position = -i * itemWidth * visibleItems;
-            position = Math.max(position, maxPosition);
-            track.style.transform = `translateX(${position}px)`;
-            updateDots();
-        });
-        dotsContainer.appendChild(dot);
-    }
-
-    function updateDots() {
-        const activeDotIndex = Math.floor(-position / (itemWidth * visibleItems));
-        document.querySelectorAll('.dot').forEach((dot, index) => {
-            dot.classList.toggle('active', index === activeDotIndex);
+    if (track) {
+        // Clone the items to create a seamless loop
+        const items = track.querySelectorAll('.showcase-item');
+        items.forEach(item => {
+            const clone = item.cloneNode(true);
+            track.appendChild(clone);
         });
     }
 });
