@@ -191,18 +191,21 @@
     margin-top: 40px;
     overflow: hidden;
     position: relative;
+    width: 100vw;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .showcase-track {
     display: flex;
-    gap: 20px;
+    gap: 40px;
     padding: 20px 0;
-    animation: slideTrack 20s linear infinite;
+    animation: slideTrack 30s linear infinite;
 }
 
 .showcase-item {
-    min-width: 300px;
-    height: 300px;
+    min-width: calc(100vw - 80px);  /* Full viewport width minus some padding */
+    height: 400px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -234,7 +237,7 @@
         transform: translateX(0);
     }
     100% {
-        transform: translateX(calc(-320px * 5)); /* 5 items, 300px width + 20px gap */
+        transform: translateX(calc(-100% - 40px)); /* Full width plus gap */
     }
 }
 
@@ -617,7 +620,6 @@
             </p>
             <div class="showcase-slider">
                 <div class="showcase-track">
-                    <!-- Examples will automatically repeat - we only need 5 placeholders -->
                     <div class="showcase-item">
                         <div class="showcase-placeholder">Coming Soon</div>
                     </div>
