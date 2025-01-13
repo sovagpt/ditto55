@@ -200,12 +200,12 @@
     display: flex;
     gap: 40px;
     padding: 20px 0;
-    animation: slideTrack 30s linear infinite;
+    animation: infiniteScroll 30s linear infinite;
 }
 
 .showcase-item {
-    min-width: 300px;  /* Back to original size */
-    height: 300px;     /* Back to original size */
+    min-width: 300px;
+    height: 300px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -232,12 +232,12 @@
     font-size: 14px;
 }
 
-@keyframes slideTrack {
-    0% {
+@keyframes infiniteScroll {
+    from {
         transform: translateX(0);
     }
-    100% {
-        transform: translateX(calc(-1660px)); /* Adjusted for 5 items (300px * 5 + 40px gap * 4) */
+    to {
+        transform: translateX(-50%);
     }
 }
 
