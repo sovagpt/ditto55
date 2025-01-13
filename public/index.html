@@ -795,13 +795,13 @@ Response style:
     
     const bar = document.querySelector('.progress-bar');
     const downloadBtn = document.querySelector('.download-btn');
-    const status = document.getElementById('status');
+    const statusElement = document.getElementById('status');  // Renamed to statusElement
     
     try {
         bar.style.display = 'block';
         downloadBtn.style.display = 'none';
-        status.style.display = 'block';
-        status.textContent = 'Transforming...';
+        statusElement.style.display = 'block';
+        statusElement.textContent = 'Transforming...';
         updateProgress(25);
 
         // Make API call to text-to-3d endpoint
@@ -827,7 +827,7 @@ Response style:
         
         // Check task status
         const taskId = data.result;
-        let status;
+        let currentStatus; // Renamed from status to currentStatus
         updateProgress(50);
         
         do {
@@ -835,11 +835,11 @@ Response style:
                 headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
             });
             const statusData = await statusResponse.json();
-            status = statusData.status;
-            document.getElementById('status').textContent = `Converting: ${status}`;
-            updateProgress(status === 'SUCCEEDED' ? 100 : 75);
+            currentStatus = statusData.status;
+            statusElement.textContent = `Converting: ${currentStatus}`;
+            updateProgress(currentStatus === 'SUCCEEDED' ? 100 : 75);
 
-            if (status === 'SUCCEEDED') {
+            if (currentStatus === 'SUCCEEDED') {
                 downloadUrl = statusData.model_urls.glb;
                 const localUrl = await downloadAndCreateBlob(downloadUrl);
                 
@@ -883,7 +883,7 @@ Response style:
                 return;
             }
             await new Promise(r => setTimeout(r, 2000));
-        } while (status === 'PENDING' || status === 'IN_PROGRESS');
+        } while (currentStatus === 'PENDING' || currentStatus === 'IN_PROGRESS');
 
         throw new Error('Transformation failed or timed out');
     } catch (error) {
@@ -891,7 +891,7 @@ Response style:
         addMessage('Sorry, the transformation failed. Please try again. ~', 'assistant');
     } finally {
         bar.style.display = 'none';
-        status.style.display = 'none';
+        statusElement.style.display = 'none';
     }
 }
 
