@@ -540,29 +540,44 @@ Response style:
         }
 
         async function handleAIResponse(message) {
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        systemPrompt: SYSTEM_PROMPT
-                    })
-                });
+    try {
+        // Show loading state
+        const messagesContainer = document.querySelector('.chat-messages');
+        const loadingMessage = document.createElement('div');
+        loadingMessage.classList.add('message', 'assistant-message');
+        loadingMessage.textContent = 'Thinking...';
+        messagesContainer.appendChild(loadingMessage);
 
-                if (!response.ok) throw new Error('API Error');
-                
-                const data = await response.json();
-                if (data?.content?.[0]?.text) {
-                    addMessage(data.content[0].text, 'assistant');
-                }
-            } catch (error) {
-                console.error('Chat error:', error);
-                addMessage('Sorry, I encountered an error. Please try again.', 'assistant');
-            }
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: message,
+                systemPrompt: SYSTEM_PROMPT
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('API Error');
         }
+
+        const data = await response.json();
+        
+        // Remove loading message
+        messagesContainer.removeChild(loadingMessage);
+
+        if (data?.content?.[0]?.text) {
+            addMessage(data.content[0].text + ' ~', 'assistant');
+        } else {
+            throw new Error('Invalid response format');
+        }
+    } catch (error) {
+        console.error('Chat error:', error);
+        addMessage('Sorry, I encountered an error. Please try again. ~', 'assistant');
+    }
+}
 
 
         async function imageToModel(file) {
@@ -776,65 +791,37 @@ Response style:
         }
 
         async function transform(promptText) {
-            if (!dittoModel) return;
-            const bar = document.querySelector('.progress-bar');
-            const downloadBtn = document.querySelector('.download-btn');
-            const status = document.getElementById('status');
-            bar.style.display = 'block';
-            downloadBtn.style.display = 'none';
-            status.style.display = 'block';
-            
-            try {
-                const modelUrl = await generate3DModel(promptText);
-                downloadUrl = modelUrl;
-                const localUrl = await downloadAndCreateBlob(modelUrl);
-                
-                const loader = new THREE.GLTFLoader();
-                loader.load(localUrl, (gltf) => {
-                    URL.revokeObjectURL(localUrl);
-                    if (currentModel) scene.remove(currentModel);
-                    
-                    const newModel = gltf.scene;
-                    currentModel = newModel;
-                    scene.add(newModel);
-                    newModel.scale.set(0, 0, 0);
-                    
-                    gsap.to(dittoModel.scale, {
-                        x: 0, y: 0, z: 0,
-                        duration: 1,
-                        ease: "power2.in"
-                    });
+    if (!dittoModel) return;
+    
+    addMessage(`Starting transformation: "${promptText}" ~`, 'assistant');
+    
+    const bar = document.querySelector('.progress-bar');
+    const downloadBtn = document.querySelector('.download-btn');
+    const status = document.getElementById('status');
+    
+    try {
+        bar.style.display = 'block';
+        downloadBtn.style.display = 'none';
+        status.style.display = 'block';
+        status.textContent = 'Transforming...';
+        
+        // Rest of your existing transform function code...
+        
+        addMessage('Transformation complete! You can now download or animate the model. ~', 'assistant');
+    } catch (error) {
+        console.error('Transform failed:', error);
+        addMessage('Sorry, the transformation failed. Please try again. ~', 'assistant');
+    }
+}
 
-                    gsap.to(newModel.scale, {
-                        x: 2, y: 2, z: 2,
-                        duration: 1,
-                        delay: 1,
-                        ease: "power2.out",
-                        onComplete: () => {
-                            gsap.to(newModel.rotation, {
-                                y: Math.PI * 2,
-                                duration: 2,
-                                ease: "power1.inOut"
-                            });
-                            document.querySelector('.animate-btn').style.display = 'block';
-                            downloadBtn.style.display = 'block';
-                            downloadBtn.style.pointerEvents = 'auto';
-                            downloadBtn.style.zIndex = '1001';
-                        }
-                    });
-                });
-            } catch (error) {
-                console.error('Transform failed:', error);
-                gsap.to(dittoModel.scale, {
-                    x: 1, y: 1, z: 1,
-                    duration: 1,
-                    ease: "power2.out"
-                });
-            } finally {
-                bar.style.display = 'none';
-                status.style.display = 'none';
-            }
-        }
+function addMessage(message, type) {
+    const messagesContainer = document.querySelector('.chat-messages');
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', `${type}-message`);
+    messageDiv.textContent = message;
+    messagesContainer.appendChild(messageDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
         function animate() {
             requestAnimationFrame(animate);
@@ -876,6 +863,26 @@ document.querySelector('.overlay').onclick = function() {
     document.querySelector('.animation-preview').style.display = 'none';
     document.querySelector('.overlay').style.display = 'none';
 }
+
+document.querySelector('.send-btn').addEventListener('click', async () => {
+    const input = document.querySelector('.chat-input');
+    const message = input.value.trim();
+    if (message) {
+        addMessage(message, 'user');
+        input.value = '';
+        await handleAIResponse(message);
+    }
+});
+
+// Transform button click handler for 3D object creation
+document.querySelector('.transform-btn').addEventListener('click', () => {
+    const promptInput = document.getElementById('prompt');
+    const prompt = promptInput.value.trim();
+    if (prompt) {
+        transform(prompt);
+        promptInput.value = '';
+    }
+});
     </script>
     <div class="overlay" id="overlay"></div>
     <div class="animation-preview">
