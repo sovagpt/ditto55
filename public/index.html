@@ -802,13 +802,96 @@ Response style:
         downloadBtn.style.display = 'none';
         status.style.display = 'block';
         status.textContent = 'Transforming...';
+        updateProgress(25);
+
+        // Make API call to text-to-3d endpoint
+        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/text-to-3d`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${MESHY_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                prompt: promptText,
+                enable_pbr: true,
+                should_remesh: true,
+                should_texture: true,
+                topology: "quad",
+                target_polycount: 30000
+            })
+        });
+
+        if (!response.ok) throw new Error('API Error');
+        const data = await response.json();
+        console.log('Transform response:', data);
         
-        // Rest of your existing transform function code...
+        // Check task status
+        const taskId = data.result;
+        let status;
+        updateProgress(50);
         
-        addMessage('Transformation complete! You can now download or animate the model. ~', 'assistant');
+        do {
+            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/text-to-3d/${taskId}`, {
+                headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+            });
+            const statusData = await statusResponse.json();
+            status = statusData.status;
+            document.getElementById('status').textContent = `Converting: ${status}`;
+            updateProgress(status === 'SUCCEEDED' ? 100 : 75);
+
+            if (status === 'SUCCEEDED') {
+                downloadUrl = statusData.model_urls.glb;
+                const localUrl = await downloadAndCreateBlob(downloadUrl);
+                
+                const loader = new THREE.GLTFLoader();
+                loader.load(localUrl, (gltf) => {
+                    URL.revokeObjectURL(localUrl);
+                    if (currentModel) scene.remove(currentModel);
+                    
+                    const newModel = gltf.scene;
+                    currentModel = newModel;
+                    scene.add(newModel);
+                    newModel.scale.set(0, 0, 0);
+                    
+                    // Ditto disappearing animation
+                    gsap.to(dittoModel.scale, {
+                        x: 0, y: 0, z: 0,
+                        duration: 1,
+                        ease: "power2.in"
+                    });
+
+                    // Scale up new model
+                    gsap.to(newModel.scale, {
+                        x: 2, y: 2, z: 2,
+                        duration: 1,
+                        delay: 1,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            gsap.to(newModel.rotation, {
+                                y: Math.PI * 2,
+                                duration: 2,
+                                ease: "power1.inOut"
+                            });
+                            document.querySelector('.animate-btn').style.display = 'block';
+                            document.querySelector('.download-btn').style.display = 'block';
+                            document.querySelector('.download-btn').style.pointerEvents = 'auto';
+                            document.querySelector('.download-btn').style.zIndex = '1001';
+                        }
+                    });
+                });
+                addMessage('Transformation complete! You can now download or animate the model. ~', 'assistant');
+                return;
+            }
+            await new Promise(r => setTimeout(r, 2000));
+        } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+        throw new Error('Transformation failed or timed out');
     } catch (error) {
         console.error('Transform failed:', error);
         addMessage('Sorry, the transformation failed. Please try again. ~', 'assistant');
+    } finally {
+        bar.style.display = 'none';
+        status.style.display = 'none';
     }
 }
 
