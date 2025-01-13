@@ -795,7 +795,7 @@ Response style:
     
     const bar = document.querySelector('.progress-bar');
     const downloadBtn = document.querySelector('.download-btn');
-    const statusElement = document.getElementById('status');  // Renamed to statusElement
+    const statusElement = document.getElementById('status');
     
     try {
         bar.style.display = 'block';
@@ -804,12 +804,15 @@ Response style:
         statusElement.textContent = 'Transforming...';
         updateProgress(25);
 
-        // Make API call to text-to-3d endpoint
+        // Add logging to debug API call
+        console.log('Making API call with prompt:', promptText);
+
         const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/text-to-3d`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
             },
             body: JSON.stringify({
                 prompt: promptText,
@@ -821,18 +824,26 @@ Response style:
             })
         });
 
-        if (!response.ok) throw new Error('API Error');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('API Error Response:', errorText);
+            throw new Error(`API Error: ${response.status} - ${errorText}`);
+        }
+
         const data = await response.json();
         console.log('Transform response:', data);
         
         // Check task status
         const taskId = data.result;
-        let currentStatus; // Renamed from status to currentStatus
+        let currentStatus;
         updateProgress(50);
         
         do {
             const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/text-to-3d/${taskId}`, {
-                headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+                headers: {
+                    'Authorization': `Bearer ${MESHY_API_KEY}`,
+                    'Accept': 'application/json'
+                }
             });
             const statusData = await statusResponse.json();
             currentStatus = statusData.status;
@@ -888,7 +899,7 @@ Response style:
         throw new Error('Transformation failed or timed out');
     } catch (error) {
         console.error('Transform failed:', error);
-        addMessage('Sorry, the transformation failed. Please try again. ~', 'assistant');
+        addMessage(`Sorry, the transformation failed. Error: ${error.message} Please try again. ~`, 'assistant');
     } finally {
         bar.style.display = 'none';
         statusElement.style.display = 'none';
