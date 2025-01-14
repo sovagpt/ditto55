@@ -558,6 +558,65 @@
     animation-play-state: paused;
 }
 
+.tips-section {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 60px 20px;
+    margin: 40px auto 0;
+    backdrop-filter: blur(5px);
+    width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tips-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tips-title {
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 32px;
+    color: white;
+    text-align: center;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 0 #3B4CCA;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    padding: 20px;
+}
+
+.tip-card {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 30px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tip-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 25px rgba(59, 76, 202, 0.2);
+}
+
+.tip-card h3 {
+    color: #A664A5;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.tip-card p {
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    line-height: 1.8;
+    text-align: center;
+}
+
 .showcase-placeholder {
     width: 100%;
     height: 100%;
