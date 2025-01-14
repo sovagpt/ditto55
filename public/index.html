@@ -514,19 +514,19 @@
        }
 
        .progress-bar {
-        position: relative;
-           top: 25%;
-           left: 35%;
-           transform: translate(-50%, -50%);
-           width: 200px;
-           height: 20px;
-           z-index: 1002;
-           border: 3px solid #3B4CCA;
-           background: #FFDE00;
-           border-radius: 10px;
-           display: none;
-           box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
-       }
+    position: absolute;
+    top: 100px; /* Fixed position from top of container */
+    right: 50px; /* Fixed position from right of container */
+    transform: none; /* Remove the transform */
+    width: 200px;
+    height: 20px;
+    z-index: 1002;
+    border: 3px solid #3B4CCA;
+    background: #FFDE00;
+    border-radius: 10px;
+    display: none;
+    box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
+}
 
        .progress-fill {
            height: 100%;
