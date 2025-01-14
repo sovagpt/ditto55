@@ -488,17 +488,6 @@ function animateMain() {
     }
 });
 
-function animateMain() {
-    requestAnimationFrame(animateMain);
-    
-    models.forEach(model => {
-        model.rotation.y += 0.005;
-    });
-
-    controls.update();
-    renderer.render(scene, camera);
-}
-
 function initTerminalViewer() {
     const canvas = document.getElementById('terminalCanvas');
     const container = document.querySelector('.terminal-canvas-container');
@@ -606,6 +595,11 @@ function closeTerminalViewer() {
     // Remove resize listener
     window.removeEventListener('resize', onTerminalResize);
 }
+
+init().catch(error => {
+    console.error('Initialization error:', error);
+    document.querySelector('.loading').textContent = 'Failed to initialize scene';
+});
     </script>
 </body>
 </html>
