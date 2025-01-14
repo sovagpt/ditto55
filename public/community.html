@@ -451,9 +451,16 @@
     
     if (intersects.length > 0) {
         const intersectedObject = intersects[0].object;
+        console.log('Clicked object:', intersectedObject);
+        
         if (intersectedObject.userData && intersectedObject.userData.prompt) {
-            // Open terminal viewer with the clicked model
-            const modelRoot = intersectedObject.parent;
+            console.log('Valid model clicked');
+            // Important: Get the root model object, not just the intersected part
+            let modelRoot = intersectedObject;
+            while (modelRoot.parent && modelRoot.parent !== scene) {
+                modelRoot = modelRoot.parent;
+            }
+            console.log('Model root:', modelRoot);
             openTerminalViewer(modelRoot);
             
             event.stopPropagation();
@@ -461,31 +468,24 @@
     }
 });
 
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            models.forEach(model => {
-                model.rotation.y += 0.005;
-            });
-
-            controls.update();
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        console.log('Starting initialization...');
-        init().catch(error => {
-            console.error('Initialization error:', error);
-            document.querySelector('.loading').textContent = 'Failed to initialize scene';
-        });
-
-        let terminalRenderer, terminalScene, terminalCamera, terminalControls;
-let activeModel = null;
+function animate() {
+    requestAnimationFrame(animate);
+    
+    // Log on first few frames to verify animation is running
+    if (!window.animateCount) {
+        window.animateCount = 0;
+    }
+    if (window.animateCount < 5) {
+        console.log('Animation frame:', window.animateCount++);
+    }
+    
+    if (terminalControls) {
+        terminalControls.update();
+    }
+    if (terminalRenderer && terminalScene && terminalCamera) {
+        terminalRenderer.render(terminalScene, terminalCamera);
+    }
+}
 
 function initTerminalViewer() {
     const canvas = document.getElementById('terminalCanvas');
@@ -525,65 +525,47 @@ function initTerminalViewer() {
 }
 
 function openTerminalViewer(model) {
+    console.log('Opening terminal viewer with model:', model);
     const viewer = document.getElementById('terminalViewer');
     viewer.style.display = 'block';
     
     if (!terminalScene) {
+        console.log('Initializing terminal viewer');
         initTerminalViewer();
     }
     
     // Clear existing model if any
     if (activeModel) {
+        console.log('Removing existing model');
         terminalScene.remove(activeModel);
     }
     
     // Clone the model for the viewer
     activeModel = model.clone();
+    console.log('Cloned model:', activeModel);
     
-    // Reset position and rotation
+    // Reset transform
     activeModel.position.set(0, 0, 0);
-    activeModel.rotation.set(0, 0, 0);
     
-    // Calculate bounding box to center and scale model
-    const bbox = new THREE.Box3().setFromObject(activeModel);
-    const center = bbox.getCenter(new THREE.Vector3());
-    const size = bbox.getSize(new THREE.Vector3());
-    
-    // Center the model
-    activeModel.position.sub(center);
-    
-    // Scale model to fit view
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = 2 / maxDim;
-    activeModel.scale.multiplyScalar(scale);
+    // Position camera to see model
+    terminalCamera.position.set(0, 1, 5);
+    terminalCamera.lookAt(0, 0, 0);
     
     terminalScene.add(activeModel);
+    console.log('Added model to scene');
     
-    // Update stats
-    let geometry;
-    activeModel.traverse((child) => {
-        if (child.geometry) {
-            geometry = child.geometry;
-        }
-    });
+    // Log scene contents
+    console.log('Scene contents:', terminalScene);
     
-    if (geometry) {
-        document.getElementById('modelFaces').textContent = geometry.index ? 
-            Math.round(geometry.index.count / 3) : '-';
-        document.getElementById('modelVertices').textContent = 
-            geometry.attributes.position.count;
+    // Force a render
+    if (terminalRenderer) {
+        console.log('Forcing initial render');
+        terminalRenderer.render(terminalScene, terminalCamera);
     }
-    
-    document.getElementById('modelPrompt').textContent = model.userData.prompt;
-    
-    // Add window resize handler
-    window.addEventListener('resize', onTerminalResize);
-    
-    // Ensure proper initial render
-    onTerminalResize();
-    
-    // Start animation if not already running
+
+    // Start animation
     if (!terminalRenderer.animation) {
+        console.log('Starting animation loop');
         animate();
     }
 }
