@@ -681,7 +681,8 @@
     display: flex;
     gap: 40px;
     padding: 20px 0;
-    animation: infiniteScroll 60s linear infinite; /* Increased duration for more models */
+    transition: animation-play-state 0.3s ease;
+    animation: infiniteScroll 30s linear infinite; /* Reduced from 60s to 30s */
 }
 
 .model-canvas {
