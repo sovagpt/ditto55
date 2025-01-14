@@ -13,6 +13,9 @@
            margin: 0; 
            background: url('https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/677815b17d293c5b2b9269c8_forest.png') no-repeat center center fixed; 
            background-size: cover;
+           overflow-x: hidden;
+    width: 100%;
+    position: relative;
        }
 
        
@@ -196,19 +199,23 @@
 
 .footer {
     background-color: rgba(0, 0, 0, 0.8);
-    padding: 40px 20px;
+    padding: 40px 0;  /* Changed padding to vertical only */
     backdrop-filter: blur(5px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     margin: 0;
-    width: 100vw;  /* Changed to viewport width */
+    width: 100vw;
     position: relative;
     left: 50%;
-    transform: translateX(-50%);  /* Center the section */
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    overflow: hidden;
 }
 
 .footer-container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 20px;  /* Moved horizontal padding to container */
 }
 
 .footer-branding {
