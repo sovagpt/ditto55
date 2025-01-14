@@ -231,6 +231,97 @@
     border-radius: 10px;
 }
 
+.preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.preview-content {
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    width: 80%;
+    max-width: 1200px;
+}
+
+.preview-content h2 {
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.preview-item {
+    aspect-ratio: 1;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.preview-item.selected {
+    border: 2px solid #3B4CCA;
+    box-shadow: 0 0 15px rgba(59, 76, 202, 0.5);
+}
+
+.preview-canvas {
+    width: 100%;
+    height: 100%;
+}
+
+.preview-spinner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    gap: 10px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: #3B4CCA;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.preview-controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
 .showcase-item:hover {
     transform: scale(1.05);
 }
@@ -1079,170 +1170,128 @@ async function imageToModel(file) {
     }
 }
 
+let previewTaskIds = [];
+let selectedPreviewId = null;
+
 async function transform(promptText) {
     if (!dittoModel) return;
     
-    addMessage(`Starting transformation: "${promptText}" ~`, 'assistant');
-    
-    const bar = document.querySelector('.progress-bar');
-    const downloadBtn = document.querySelector('.download-btn');
-    const statusElement = document.getElementById('status');
-    
-    try {
-        bar.style.display = 'block';
-        downloadBtn.style.display = 'none';
-        statusElement.style.display = 'block';
-        statusElement.textContent = 'Creating preview...';
-        updateProgress(25);
+    const previewModal = document.getElementById('preview-modal');
+    const generateFinalBtn = document.getElementById('generate-final');
+    previewModal.style.display = 'flex';
+    generateFinalBtn.disabled = true;
+    selectedPreviewId = null;
+    previewTaskIds = [];
 
-        // Step 1: Create preview task
-        const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                mode: "preview",
-                prompt: promptText,
-                art_style: "realistic",
-                should_remesh: true,
-                topology: "quad",
-                target_polycount: 30000,
-                symmetry_mode: "auto"
-            })
-        });
+    addMessage(`Generating previews for: "${promptText}" ~`, 'assistant');
 
-        if (!previewResponse.ok) {
-            const errorText = await previewResponse.text();
-            console.error('Preview API Error:', errorText);
-            throw new Error(`Preview API Error: ${previewResponse.status} - ${errorText}`);
-        }
-
-        const previewData = await previewResponse.json();
-        const previewTaskId = previewData.result;
-        console.log('Preview task created:', previewTaskId);
-        
-        // Step 2: Check preview status until complete
-        let previewStatus;
-        do {
-            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${previewTaskId}`, {
+    // Create 4 preview tasks in parallel
+    const previewPromises = Array(4).fill().map(async (_, index) => {
+        try {
+            const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+                method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${MESHY_API_KEY}`
-                }
+                    'Authorization': `Bearer ${MESHY_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    mode: "preview",
+                    prompt: promptText,
+                    art_style: "realistic",
+                    should_remesh: true,
+                    topology: "quad",
+                    target_polycount: 30000,
+                    symmetry_mode: "auto"
+                })
             });
-            const statusData = await statusResponse.json();
-            previewStatus = statusData.status;
-            statusElement.textContent = `Preview: ${previewStatus}`;
-            updateProgress(50);
+
+            if (!previewResponse.ok) throw new Error('Preview creation failed');
             
-            if (previewStatus === 'FAILED') {
-                throw new Error('Preview generation failed');
-            }
-            
-            await new Promise(r => setTimeout(r, 2000));
-        } while (previewStatus === 'PENDING' || previewStatus === 'IN_PROGRESS');
+            const previewData = await previewResponse.json();
+            const taskId = previewData.result;
+            previewTaskIds[index] = taskId;
 
-        // Step 3: Create refine task
-        statusElement.textContent = 'Creating final model...';
-        const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                mode: "refine",
-                preview_task_id: previewTaskId,
-                enable_pbr: true
-            })
-        });
-
-        if (!refineResponse.ok) {
-            const errorText = await refineResponse.text();
-            console.error('Refine API Error:', errorText);
-            throw new Error(`Refine API Error: ${refineResponse.status} - ${errorText}`);
-        }
-
-        const refineData = await refineResponse.json();
-        const refineTaskId = refineData.result;
-        console.log('Refine task created:', refineTaskId);
-
-        // Step 4: Check refine status until complete
-        let refineStatus;
-        do {
-            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineTaskId}`, {
-                headers: {
-                    'Authorization': `Bearer ${MESHY_API_KEY}`
-                }
-            });
-            const statusData = await statusResponse.json();
-            refineStatus = statusData.status;
-            downloadUrl = statusData.model_urls?.glb;
-            statusElement.textContent = `Refining: ${refineStatus}`;
-            updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
-
-            if (refineStatus === 'SUCCEEDED' && downloadUrl) {
-                // Save to database with thumbnail
-                await saveToDatabase(downloadUrl, promptText);
-
-                const localUrl = await downloadAndCreateBlob(downloadUrl);
-                
-                const loader = new THREE.GLTFLoader();
-                loader.load(localUrl, (gltf) => {
-                    URL.revokeObjectURL(localUrl);
-                    if (currentModel) scene.remove(currentModel);
-                    
-                    const newModel = gltf.scene;
-                    currentModel = newModel;
-                    scene.add(newModel);
-                    newModel.scale.set(0, 0, 0);
-                    
-                    // Ditto disappearing animation
-                    gsap.to(dittoModel.scale, {
-                        x: 0, y: 0, z: 0,
-                        duration: 1,
-                        ease: "power2.in"
-                    });
-
-                    // Scale up new model
-                    gsap.to(newModel.scale, {
-                        x: 2, y: 2, z: 2,
-                        duration: 1,
-                        delay: 1,
-                        ease: "power2.out",
-                        onComplete: () => {
-                            gsap.to(newModel.rotation, {
-                                y: Math.PI * 2,
-                                duration: 2,
-                                ease: "power1.inOut"
-                            });
-                            document.querySelector('.animate-btn').style.display = 'block';
-                            document.querySelector('.download-btn').style.display = 'block';
-                            document.querySelector('.download-btn').style.pointerEvents = 'auto';
-                            document.querySelector('.download-btn').style.zIndex = '1001';
-                        }
-                    });
+            // Monitor preview status
+            let previewStatus;
+            do {
+                const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
+                    headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
                 });
-                addMessage('Transformation complete! You can now download or animate the model. ~', 'assistant');
-                return;
-            }
+                const statusData = await statusResponse.json();
+                previewStatus = statusData.status;
+                
+                if (previewStatus === 'SUCCEEDED' && statusData.model_urls?.glb) {
+                    // Load preview into the corresponding preview canvas
+                    const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
+                    const previewCanvas = previewItem.querySelector('.preview-canvas');
+                    const previewSpinner = previewItem.querySelector('.preview-spinner');
+                    
+                    await loadPreviewModel(statusData.model_urls.glb, previewCanvas);
+                    previewSpinner.style.display = 'none';
+                    previewItem.dataset.taskId = taskId;
+                    
+                    return taskId;
+                }
+                
+                if (previewStatus === 'FAILED') throw new Error('Preview generation failed');
+                
+                await new Promise(r => setTimeout(r, 2000));
+            } while (previewStatus === 'PENDING' || previewStatus === 'IN_PROGRESS');
 
-            if (refineStatus === 'FAILED') {
-                throw new Error('Refine process failed');
-            }
-            
-            await new Promise(r => setTimeout(r, 2000));
-        } while (refineStatus === 'PENDING' || refineStatus === 'IN_PROGRESS');
+        } catch (error) {
+            console.error(`Preview ${index + 1} failed:`, error);
+            const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
+            const previewSpinner = previewItem.querySelector('.preview-spinner');
+            previewSpinner.innerHTML = 'Generation failed';
+        }
+    });
 
-        throw new Error('Transformation failed or timed out');
+    try {
+        await Promise.all(previewPromises);
+        generateFinalBtn.disabled = false;
     } catch (error) {
-        console.error('Transform failed:', error);
-        addMessage(`Sorry, the transformation failed. Error: ${error.message} Please try again. ~`, 'assistant');
-    } finally {
-        bar.style.display = 'none';
-        statusElement.style.display = 'none';
+        console.error('Preview generation failed:', error);
+        addMessage('Sorry, preview generation failed. Please try again. ~', 'assistant');
     }
+}
+
+async function loadPreviewModel(modelUrl, container) {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientWidth);
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(5, 5, 5);
+    scene.add(directionalLight);
+
+    camera.position.z = 5;
+
+    const localUrl = await downloadAndCreateBlob(modelUrl);
+    const loader = new THREE.GLTFLoader();
+    
+    return new Promise((resolve, reject) => {
+        loader.load(localUrl, (gltf) => {
+            URL.revokeObjectURL(localUrl);
+            const model = gltf.scene;
+            scene.add(model);
+            model.scale.set(2, 2, 2);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+            resolve();
+        }, undefined, reject);
+    });
 }
 
 function addMessage(message, type) {
@@ -1299,6 +1348,119 @@ function addMessage(message, type) {
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
+
+        // Preview selection handling
+document.querySelectorAll('.preview-item').forEach(item => {
+    item.addEventListener('click', () => {
+        if (item.dataset.taskId) {
+            document.querySelectorAll('.preview-item').forEach(i => i.classList.remove('selected'));
+            item.classList.add('selected');
+            selectedPreviewId = item.dataset.taskId;
+            document.getElementById('generate-final').disabled = false;
+        }
+    });
+});
+
+// Generate final model button
+document.getElementById('generate-final').addEventListener('click', async () => {
+    if (!selectedPreviewId) return;
+    
+    document.getElementById('preview-modal').style.display = 'none';
+    const statusElement = document.getElementById('status');
+    statusElement.style.display = 'block';
+    statusElement.textContent = 'Generating final model...';
+    updateProgress(75);
+
+    try {
+        const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${MESHY_API_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                mode: "refine",
+                preview_task_id: selectedPreviewId,
+                enable_pbr: true
+            })
+        });
+
+        if (!refineResponse.ok) throw new Error('Refine process failed');
+        
+        const refineData = await refineResponse.json();
+        const refineTaskId = refineData.result;
+
+        // Monitor refine status
+        let refineStatus;
+        do {
+            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineTaskId}`, {
+                headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+            });
+            const statusData = await statusResponse.json();
+            refineStatus = statusData.status;
+            downloadUrl = statusData.model_urls?.glb;
+            statusElement.textContent = `Refining: ${refineStatus}`;
+            updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
+
+            if (refineStatus === 'SUCCEEDED' && downloadUrl) {
+                const localUrl = await downloadAndCreateBlob(downloadUrl);
+                
+                const loader = new THREE.GLTFLoader();
+                loader.load(localUrl, (gltf) => {
+                    URL.revokeObjectURL(localUrl);
+                    if (currentModel) scene.remove(currentModel);
+                    
+                    const newModel = gltf.scene;
+                    currentModel = newModel;
+                    scene.add(newModel);
+                    newModel.scale.set(0, 0, 0);
+                    
+                    // Ditto disappearing animation
+                    gsap.to(dittoModel.scale, {
+                        x: 0, y: 0, z: 0,
+                        duration: 1,
+                        ease: "power2.in"
+                    });
+
+                    // Scale up new model
+                    gsap.to(newModel.scale, {
+                        x: 2, y: 2, z: 2,
+                        duration: 1,
+                        delay: 1,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            gsap.to(newModel.rotation, {
+                                y: Math.PI * 2,
+                                duration: 2,
+                                ease: "power1.inOut"
+                            });
+                            document.querySelector('.animate-btn').style.display = 'block';
+                            document.querySelector('.download-btn').style.display = 'block';
+                        }
+                    });
+                });
+                
+                addMessage('Final model generated successfully! You can now download or animate the model. ~', 'assistant');
+                return;
+            }
+
+            if (refineStatus === 'FAILED') throw new Error('Refine process failed');
+            
+            await new Promise(r => setTimeout(r, 2000));
+        } while (refineStatus === 'PENDING' || refineStatus === 'IN_PROGRESS');
+
+    } catch (error) {
+        console.error('Final generation failed:', error);
+        addMessage('Sorry, the final generation failed. Please try again. ~', 'assistant');
+    } finally {
+        statusElement.style.display = 'none';
+    }
+});
+
+// Cancel button
+document.getElementById('cancel-preview').addEventListener('click', () => {
+    document.getElementById('preview-modal').style.display = 'none';
+});
 
 // Update your click handlers
 document.querySelector('.animate-btn').onclick = function() {
@@ -1387,6 +1549,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="animation-item">
                     Thoughtful Walk <span class="new-badge">NEW</span>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div id="preview-modal" class="preview-modal" style="display: none;">
+        <div class="preview-content">
+            <h2>Select a Preview</h2>
+            <div class="preview-grid">
+                <div class="preview-item" data-index="0">
+                    <div class="preview-canvas"></div>
+                    <div class="preview-spinner">
+                        <div class="spinner"></div>
+                        Generating...
+                    </div>
+                </div>
+                <div class="preview-item" data-index="1">
+                    <div class="preview-canvas"></div>
+                    <div class="preview-spinner">
+                        <div class="spinner"></div>
+                        Generating...
+                    </div>
+                </div>
+                <div class="preview-item" data-index="2">
+                    <div class="preview-canvas"></div>
+                    <div class="preview-spinner">
+                        <div class="spinner"></div>
+                        Generating...
+                    </div>
+                </div>
+                <div class="preview-item" data-index="3">
+                    <div class="preview-canvas"></div>
+                    <div class="preview-spinner">
+                        <div class="spinner"></div>
+                        Generating...
+                    </div>
+                </div>
+            </div>
+            <div class="preview-controls">
+                <button id="cancel-preview" class="transform-btn">Cancel</button>
+                <button id="generate-final" class="transform-btn" disabled>Generate Final Model</button>
             </div>
         </div>
     </div>
