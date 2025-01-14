@@ -256,9 +256,9 @@
 }
 
 .timeline-item {
-    margin-bottom: 60px;
-    position: relative;
-    width: 100%;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 .timeline-content {
@@ -457,6 +457,67 @@
     height: 100%;
     object-fit: contain;
     border-radius: 10px;
+}
+
+.tips-section {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 60px 20px;
+    backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tips-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.tips-title {
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 32px;
+    color: white;
+    text-align: center;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 0 #3B4CCA;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.tip-card {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tip-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(59, 76, 202, 0.3);
+}
+
+.tip-card h3 {
+    color: #A664A5;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.tip-card p {
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .preview-modal {
@@ -917,9 +978,19 @@
            font-family: 'Press Start 2P', system-ui;
            text-shadow: 2px 2px 0 #3B4CCA;
        }
+       #particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+}
     </style>
 </head>
 <body>
+    <canvas id="particles"></canvas>
     <div class="header">
         <div class="logo">
             <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67781b9951b4771e3d5dfda6_Ditto_180x180.webp" alt="Ditto Logo">
@@ -1116,7 +1187,31 @@
             </div>
         </div>
     </div>
-    <!-- Add this right after your roadmap-section div -->
+
+    <div class="tips-section">
+        <div class="tips-container">
+            <h1 class="tips-title">TIPS & TRICKS</h1>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h3>Be Specific</h3>
+                    <p>Instead of "a sword", try "a medieval longsword with ornate golden dragons on the hilt and a crystalline blue blade"</p>
+                </div>
+                <div class="tip-card">
+                    <h3>Add Context</h3>
+                    <p>Include material, size, and style. Example: "A small ceramic vase with Japanese-inspired cherry blossom patterns"</p>
+                </div>
+                <div class="tip-card">
+                    <h3>Reference Style</h3>
+                    <p>Mention specific art styles or time periods: "A cyberpunk-style helmet with neon accents and retro-futuristic design"</p>
+                </div>
+                <div class="tip-card">
+                    <h3>Describe Details</h3>
+                    <p>Include texture and surface details: "A rough-textured stone sculpture with moss-covered crevices and weathered edges"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
 <div class="footer">
     <div class="footer-container">
         <div class="footer-branding">
@@ -1602,6 +1697,72 @@ async function transform(promptText) {
     }
 }
 
+function initParticles() {
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    const particles = [];
+    const particleCount = 50;
+    
+    for (let i = 0; i < particleCount; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 2 + 1,
+            speedX: Math.random() * 0.5 - 0.25,
+            speedY: Math.random() * 0.5 - 0.25,
+            opacity: Math.random() * 0.5 + 0.2
+        });
+    }
+    
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        particles.forEach(particle => {
+            particle.x += particle.speedX;
+            particle.y += particle.speedY;
+            
+            if (particle.x < 0) particle.x = canvas.width;
+            if (particle.x > canvas.width) particle.x = 0;
+            if (particle.y < 0) particle.y = canvas.height;
+            if (particle.y > canvas.height) particle.y = 0;
+            
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(59, 76, 202, ${particle.opacity})`;
+            ctx.fill();
+        });
+        
+        requestAnimationFrame(animateParticles);
+    }
+    
+    animateParticles();
+    
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+}
+
+function initScrollAnimations() {
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+            }
+        });
+    }, {
+        threshold: 0.1
+    });
+    
+    document.querySelectorAll('.timeline-item').forEach(item => {
+        observer.observe(item);
+    });
+}
+
 async function loadPreviewModel(modelUrl, container) {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
@@ -1711,12 +1872,23 @@ function addMessage(message, type) {
             }
         }
 
-        window.onload = init;
-        window.onresize = function() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        };
+        window.onload = function() {
+    init();
+    initParticles();
+};
+
+window.onresize = function() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    
+    // Also update particles canvas on resize
+    const canvas = document.getElementById('particles');
+    if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     // Existing showcase track code
