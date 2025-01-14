@@ -199,7 +199,11 @@
     padding: 40px 20px;
     backdrop-filter: blur(5px);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
-    margin-top: 0;
+    margin: 0;
+    width: 100vw;  /* Changed to viewport width */
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);  /* Center the section */
 }
 
 .footer-container {
