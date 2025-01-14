@@ -1191,6 +1191,7 @@ let selectedPreviewId = null;
 
 async function transform(promptText) {
     if (!dittoModel) return;
+    window.currentPrompt = promptText;
     
     const previewModal = document.getElementById('preview-modal');
     const generateFinalBtn = document.getElementById('generate-final');
@@ -1458,6 +1459,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
 
                 if (refineStatus === 'SUCCEEDED' && downloadUrl) {
+                    const promptText = window.currentPrompt;
+    await saveToDatabase(downloadUrl, promptText);
                     const localUrl = await downloadAndCreateBlob(downloadUrl);
                     
                     const loader = new THREE.GLTFLoader();
