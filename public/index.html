@@ -434,6 +434,10 @@
     background: rgba(0, 0, 0, 0.2);
     border-radius: 10px;
     overflow: hidden;
+    box-shadow: 
+        inset 0 0 50px rgba(0, 255, 255, 0.3),
+        0 0 30px rgba(0, 255, 255, 0.5);
+    animation: pulse 4s ease-in-out infinite;
 }
 
 #character-morph {
@@ -444,6 +448,9 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    filter: brightness(1.5) contrast(1.2) saturate(0.8) hue-rotate(180deg) blur(0.6px);
+    mix-blend-mode: screen;
+    animation: shake 0.05s infinite, flicker 5s infinite;
 }
 
 .scan-line {
@@ -451,14 +458,29 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 2px;
-    background: rgba(0, 255, 255, 0.5);
-    animation: scan 2s linear infinite;
+    height: 4px; /* Increased from 2px */
+    background: linear-gradient(to bottom,
+        rgba(0, 255, 255, 0) 0%,
+        rgba(0, 255, 255, 0.8) 50%,
+        rgba(0, 255, 255, 0) 100%
+    );
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+    animation: scan 4s linear infinite;
+    opacity: 0.7;
 }
 
-@keyframes scan {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(400px); }
+@keyframes shake {
+    0% { transform: translate(0, 0) }
+    25% { transform: translate(0.5px, 0.5px) }
+    50% { transform: translate(-0.5px, -0.5px) }
+    75% { transform: translate(-0.5px, 0.5px) }
+    100% { transform: translate(0.5px, -0.5px) }
+}
+
+@keyframes flicker {
+    0% { opacity: 1; }
+    50% { opacity: 0.96; }
+    100% { opacity: 1; }
 }
 
 .hologram-effect {
@@ -779,6 +801,39 @@
 
 @keyframes spin {
     100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { box-shadow: inset 0 0 50px rgba(0, 255, 255, 0.3), 0 0 30px rgba(0, 255, 255, 0.5); }
+    50% { box-shadow: inset 0 0 60px rgba(0, 255, 255, 0.4), 0 0 40px rgba(0, 255, 255, 0.6); }
+    100% { box-shadow: inset 0 0 50px rgba(0, 255, 255, 0.3), 0 0 30px rgba(0, 255, 255, 0.5); }
+}
+
+.hologram-display::before,
+.hologram-display::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(0, 255, 255, 0.5);
+    animation: multiScan 6s linear infinite;
+    opacity: 0.3;
+}
+
+.hologram-display::before {
+    top: 33%;
+    animation-delay: -2s;
+}
+
+.hologram-display::after {
+    top: 66%;
+    animation-delay: -4s;
+}
+
+@keyframes multiScan {
+    from { transform: translateY(-100px); }
+    to { transform: translateY(400px); }
 }
 
 .showcase-item:hover {
@@ -2278,6 +2333,17 @@ function addMessage(message, type) {
     videoElement.style.backgroundImage = "url('/assets/videos/ditto.gif')";
     videoElement.style.backgroundSize = "cover";
     videoElement.style.backgroundPosition = "center";
+
+    const blueOverlay = document.createElement('div');
+blueOverlay.style.position = 'absolute';
+blueOverlay.style.top = '0';
+blueOverlay.style.left = '0';
+blueOverlay.style.width = '100%';
+blueOverlay.style.height = '100%';
+blueOverlay.style.background = 'rgba(0, 255, 255, 0.2)';
+blueOverlay.style.mixBlendMode = 'color';
+blueOverlay.style.pointerEvents = 'none';
+document.querySelector('.hologram-display').appendChild(blueOverlay);
     
     videoElement.addEventListener('ended', () => {
         // Reset to initial state
