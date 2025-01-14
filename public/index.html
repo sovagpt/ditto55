@@ -1082,11 +1082,11 @@
     max-width: 1800px;
     width: 95%;
     height: calc(90vh - 60px);
-    gap: 60px;
+    gap: 40px;  /* Reduced from 60px to give more space */
     justify-content: center;
     align-items: flex-start;
     margin: auto;
-    padding-top: 100px; /* Increased from 80px to move terminals down slightly */
+    padding-top: 100px;
     margin-bottom: 60px;
 }
 
@@ -1098,8 +1098,8 @@
     display: flex;
     flex-direction: column;
     height: 700px;
-    width: 400px;
-    max-width: 400px;
+    width: 600px;  /* Increased from 400px */
+    max-width: 600px;  /* Increased from 400px */
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: -20px;
     margin-right: 0;
@@ -1207,7 +1207,7 @@
         <div class="chat-terminal">
             <div class="chat-messages">
                 <div class="message assistant-message">
-                    Hi! I'm DittoAI, your expert in 3D object creation and editing! Let's talk while you wait for your generation! I'm here to guide you through the process. What would you like to create today? ~
+                    Hi! I'm DittoAI, a self-learning expert in 3D object generation! While I'm already skilled at creating 3D models, I'm constantly evolving and adding new capabilities. For example, I'm currently mastering AI voice agent technology! Let's talk while you wait for your generation - I'm here to guide you through the process. What would you like to create today? ~
                 </div>
             </div>
             <div class="input-container">
