@@ -489,24 +489,35 @@ let activeModel = null;
 
 function initTerminalViewer() {
     const canvas = document.getElementById('terminalCanvas');
+    const container = document.querySelector('.terminal-canvas-container');
+    
+    // Set canvas to fill container
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
     
     terminalScene = new THREE.Scene();
     terminalScene.background = new THREE.Color(0x1a1a1a);
     
-    const container = document.querySelector('.terminal-canvas-container');
-    terminalCamera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-    terminalCamera.position.z = 5;
-    terminalCamera.position.y = 2;
+    // Calculate proper camera aspect ratio
+    const aspect = container.clientWidth / container.clientHeight;
+    terminalCamera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+    terminalCamera.position.z = 3;
+    terminalCamera.position.y = 1;
     
     terminalRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-    terminalRenderer.setSize(container.clientWidth, container.clientHeight);
+    terminalRenderer.setSize(container.clientWidth, container.clientHeight, false);
     
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    // Add stronger lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     terminalScene.add(ambientLight);
     
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 10, 10);
-    terminalScene.add(directionalLight);
+    const frontLight = new THREE.DirectionalLight(0xffffff, 1);
+    frontLight.position.set(0, 0, 5);
+    terminalScene.add(frontLight);
+    
+    const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    backLight.position.set(0, 0, -5);
+    terminalScene.add(backLight);
     
     terminalControls = new THREE.OrbitControls(terminalCamera, canvas);
     terminalControls.enableDamping = true;
@@ -528,28 +539,81 @@ function openTerminalViewer(model) {
     
     // Clone the model for the viewer
     activeModel = model.clone();
+    
+    // Reset position and rotation
     activeModel.position.set(0, 0, 0);
+    activeModel.rotation.set(0, 0, 0);
+    
+    // Calculate bounding box to center and scale model
+    const bbox = new THREE.Box3().setFromObject(activeModel);
+    const center = bbox.getCenter(new THREE.Vector3());
+    const size = bbox.getSize(new THREE.Vector3());
+    
+    // Center the model
+    activeModel.position.sub(center);
+    
+    // Scale model to fit view
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scale = 2 / maxDim;
+    activeModel.scale.multiplyScalar(scale);
+    
     terminalScene.add(activeModel);
     
     // Update stats
-    const geometry = activeModel.children[0].geometry;
-    document.getElementById('modelFaces').textContent = geometry.index ? geometry.index.count / 3 : '-';
-    document.getElementById('modelVertices').textContent = geometry.attributes.position.count;
+    let geometry;
+    activeModel.traverse((child) => {
+        if (child.geometry) {
+            geometry = child.geometry;
+        }
+    });
+    
+    if (geometry) {
+        document.getElementById('modelFaces').textContent = geometry.index ? 
+            Math.round(geometry.index.count / 3) : '-';
+        document.getElementById('modelVertices').textContent = 
+            geometry.attributes.position.count;
+    }
+    
     document.getElementById('modelPrompt').textContent = model.userData.prompt;
     
-    // Start animation
+    // Add window resize handler
+    window.addEventListener('resize', onTerminalResize);
+    
+    // Ensure proper initial render
+    onTerminalResize();
+    
+    // Start animation if not already running
     if (!terminalRenderer.animation) {
         animate();
     }
 }
 
+function onTerminalResize() {
+    if (!terminalCamera || !terminalRenderer) return;
+    
+    const container = document.querySelector('.terminal-canvas-container');
+    const canvas = terminalRenderer.domElement;
+    
+    // Update camera
+    const aspect = container.clientWidth / container.clientHeight;
+    terminalCamera.aspect = aspect;
+    terminalCamera.updateProjectionMatrix();
+    
+    // Update renderer
+    terminalRenderer.setSize(container.clientWidth, container.clientHeight, false);
+}
+
 function closeTerminalViewer() {
     const viewer = document.getElementById('terminalViewer');
     viewer.style.display = 'none';
+    
     if (activeModel) {
         terminalScene.remove(activeModel);
         activeModel = null;
     }
+    
+    // Remove resize listener
+    window.removeEventListener('resize', onTerminalResize);
 }
     </script>
 </body>
