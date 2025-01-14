@@ -452,105 +452,6 @@
     transition: all 0.3s ease;
 }
 
-.chat-terminal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 15px;
-}
-
-.header-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: 'Press Start 2P', system-ui;
-    color: white;
-    font-size: 12px;
-}
-
-.status-dot {
-    width: 8px;
-    height: 8px;
-    background-color: #4CAF50;
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.4; }
-    100% { opacity: 1; }
-}
-
-.swap-button {
-    background: none;
-    border: none;
-    color: #A664A5;
-    font-family: 'Press Start 2P', system-ui;
-    font-size: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 5px 10px;
-    border-radius: 5px;
-    transition: background-color 0.3s;
-}
-
-.swap-button:hover {
-    background-color: rgba(166, 100, 165, 0.2);
-}
-
-.mode-selector {
-    position: absolute;
-    top: 60px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 15px;
-    display: none;
-    z-index: 1000;
-    width: 320px;
-}
-
-.mode-option {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    opacity: 0.5;
-}
-
-.mode-option:hover {
-    background-color: rgba(166, 100, 165, 0.1);
-}
-
-.mode-option img {
-    width: 32px;
-    height: 32px;
-    border-radius: 5px;
-    filter: grayscale(100%);
-}
-
-.mode-option-text {
-    font-family: 'Press Start 2P', system-ui;
-    font-size: 10px;
-    color: white;
-}
-
-.mode-option-status {
-    font-family: 'Press Start 2P', system-ui;
-    font-size: 8px;
-    color: #FF5350;
-    margin-top: 4px;
-}
-
 .feature-item:hover {
     background: rgba(59, 76, 202, 0.3);
     transform: translateY(-2px);
@@ -1181,7 +1082,7 @@
     max-width: 1800px;
     width: 95%;
     height: calc(90vh - 60px);
-    gap: 20px;  /* Reduced gap */
+    gap: 40px;  /* Reduced from 60px to give more space */
     justify-content: center;
     align-items: flex-start;
     margin: auto;
@@ -1197,13 +1098,13 @@
     display: flex;
     flex-direction: column;
     height: 700px;
-    width: 700px;  /* Increased width */
-    max-width: 700px;  /* Increased max-width */
+    width: 600px;  /* Increased from 400px */
+    max-width: 600px;  /* Increased from 400px */
     border: 1px solid rgba(255, 255, 255, 0.1);
     margin-top: -20px;
-    position: relative;  /* Added for modal positioning */
+    margin-right: 0;
+    margin-left: 0;
 }
-
        .chat-messages {
            flex-grow: 1;
            overflow-y: auto;
@@ -1304,47 +1205,6 @@
         </div>
 
         <div class="chat-terminal">
-            <div class="chat-terminal-header">
-                <div class="header-title">
-                    <div class="status-dot"></div>
-                    Ditto 3D Object Generation
-                </div>
-                <button class="swap-button" onclick="toggleModeSelector()">
-                    swap ↓
-                </button>
-            </div>
-            
-            <div class="mode-selector">
-                <div class="mode-option">
-                    <img src="placeholder.png" alt="Game Developer">
-                    <div>
-                        <div class="mode-option-text">Ditto Game Developer</div>
-                        <div class="mode-option-status">OFFLINE</div>
-                    </div>
-                </div>
-                <div class="mode-option">
-                    <img src="placeholder.png" alt="Bot Developer">
-                    <div>
-                        <div class="mode-option-text">Ditto Bot Developer</div>
-                        <div class="mode-option-status">OFFLINE</div>
-                    </div>
-                </div>
-                <div class="mode-option">
-                    <img src="placeholder.png" alt="Voice Agent Developer">
-                    <div>
-                        <div class="mode-option-text">Ditto AI Voice Agent Developer</div>
-                        <div class="mode-option-status">OFFLINE</div>
-                    </div>
-                </div>
-                <div class="mode-option">
-                    <img src="placeholder.png" alt="Code Developer">
-                    <div>
-                        <div class="mode-option-text">Ditto Code Developer</div>
-                        <div class="mode-option-status">OFFLINE</div>
-                    </div>
-                </div>
-            </div>
-        
             <div class="chat-messages">
                 <div class="message assistant-message">
                     Hi! I'm DittoAI, a self-learning expert in 3D object generation! While I'm already skilled at creating 3D models, I'm constantly evolving and adding new capabilities. For example, I'm currently mastering AI voice agent technology! Let's talk while you wait for your generation - I'm here to guide you through the process. What would you like to create today? ~
@@ -1359,6 +1219,7 @@
                 <span class="progress-percentage">0%</span>
             </div>
         </div>
+    </div>
 
     <div class="info-section">
         <div class="info-container">
@@ -1836,21 +1697,6 @@ async function imageToModel(file) {
         document.getElementById('status').style.display = 'none';
     }
 }
-
-function toggleModeSelector() {
-    const selector = document.querySelector('.mode-selector');
-    selector.style.display = selector.style.display === 'none' ? 'block' : 'none';
-}
-
-// Close mode selector when clicking outside
-document.addEventListener('click', (event) => {
-    const selector = document.querySelector('.mode-selector');
-    const swapButton = document.querySelector('.swap-button');
-    
-    if (!selector.contains(event.target) && !swapButton.contains(event.target)) {
-        selector.style.display = 'none';
-    }
-});
 
         async function checkTaskStatus(taskId, operation) {
             let status;
