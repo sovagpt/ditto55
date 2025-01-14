@@ -1124,6 +1124,92 @@
            line-height: 1.8;
        }
 
+       .terminal-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    margin-bottom: 15px;
+    cursor: pointer;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title-with-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 14px;
+    color: white;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #4CAF50;
+}
+
+.blink {
+    animation: blink 1s infinite;
+}
+
+.role-menu {
+    display: none;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.role-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.role-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.role-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    filter: grayscale(100%);
+}
+
+.role-info {
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 10px;
+}
+
+.role-name {
+    color: white;
+    margin-bottom: 5px;
+}
+
+.role-status {
+    color: #FF5350;
+    font-size: 8px;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
        .user-message {
            background: #3B4CCA;
        }
@@ -1205,15 +1291,60 @@
         </div>
 
         <div class="chat-terminal">
-            <div class="chat-messages">
-                <div class="message assistant-message">
-                    Hi! I'm DittoAI, a self-learning expert in 3D object generation! While I'm already skilled at creating 3D models, I'm constantly evolving and adding new capabilities. For example, I'm currently mastering AI voice agent technology! Let's talk while you wait for your generation - I'm here to guide you through the process. What would you like to create today? ~
+    <div class="terminal-header" onclick="toggleRoleMenu()">
+        <div class="header-content">
+            <div class="title-with-status">
+                <span>Ditto 3D Object Generation</span>
+                <div class="status-dot blink"></div>
+            </div>
+            <span class="chevron">▼</span>
+        </div>
+    </div>
+    
+    <div class="role-menu" id="roleMenu">
+        <div class="role-grid">
+            <div class="role-option">
+                <img src="/api/placeholder/50/50" alt="Game Dev" class="role-image">
+                <div class="role-info">
+                    <div class="role-name">Ditto game developer</div>
+                    <div class="role-status">Offline</div>
                 </div>
             </div>
-            <div class="input-container">
-                <input type="text" class="chat-input" placeholder="Chat with DittoAI..." onkeydown="handleChatInput(event)">
-                <button class="send-btn">Send</button>
+            <div class="role-option">
+                <img src="/api/placeholder/50/50" alt="Bot Dev" class="role-image">
+                <div class="role-info">
+                    <div class="role-name">Ditto bot developer</div>
+                    <div class="role-status">Offline</div>
+                </div>
             </div>
+            <div class="role-option">
+                <img src="/api/placeholder/50/50" alt="Voice Agent Dev" class="role-image">
+                <div class="role-info">
+                    <div class="role-name">Ditto ai voice agent developer</div>
+                    <div class="role-status">Offline</div>
+                </div>
+            </div>
+            <div class="role-option">
+                <img src="/api/placeholder/50/50" alt="Code Dev" class="role-image">
+                <div class="role-info">
+                    <div class="role-name">Ditto code developer</div>
+                    <div class="role-status">Offline</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-messages">
+        <div class="message assistant-message">
+            Hi! I'm DittoAI, a self-learning expert in 3D object generation! While I'm already skilled at creating 3D models, I'm constantly evolving and adding new capabilities. For example, I'm currently mastering AI voice agent technology! Let's talk while you wait for your generation - I'm here to guide you through the process. What would you like to create today? ~
+        </div>
+    </div>
+
+    <div class="input-container">
+        <input type="text" class="chat-input" placeholder="Chat with DittoAI..." onkeydown="handleChatInput(event)">
+        <button class="send-btn">Send</button>
+    </div>
+</div>
             <div class="progress-bar">
                 <div class="progress-fill"></div>
                 <span class="progress-percentage">0%</span>
@@ -1932,6 +2063,19 @@ async function transform(promptText) {
     } catch (error) {
         console.error('Preview generation failed:', error);
         addMessage('Sorry, preview generation failed. Please try again. ~', 'assistant');
+    }
+}
+
+function toggleRoleMenu() {
+    const menu = document.getElementById('roleMenu');
+    const chevron = document.querySelector('.chevron');
+    
+    if (menu.style.display === 'none' || menu.style.display === '') {
+        menu.style.display = 'block';
+        chevron.style.transform = 'rotate(180deg)';
+    } else {
+        menu.style.display = 'none';
+        chevron.style.transform = 'rotate(0deg)';
     }
 }
 
