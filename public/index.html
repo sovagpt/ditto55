@@ -285,6 +285,119 @@
     box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
 }
 
+.voice-agents-section {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 60px 20px;
+    margin-top: 0;
+    backdrop-filter: blur(5px);
+    width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.voice-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.voice-title {
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 32px;
+    color: white;
+    text-align: center;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 0 #3B4CCA;
+}
+
+.voice-subtitle {
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 20px;
+    color: #A664A5;
+    text-align: center;
+    margin-bottom: 40px;
+    animation: glow 2s infinite alternate;
+}
+
+.voice-content {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    padding: 20px;
+}
+
+.voice-image {
+    flex: 1;
+    text-align: center;
+}
+
+.voice-info {
+    flex: 1;
+}
+
+.hologram-effect {
+    max-width: 400px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    filter: brightness(1.2) contrast(1.1);
+}
+
+.voice-info h3 {
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.voice-info p {
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+.feature-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.feature-item {
+    background: rgba(59, 76, 202, 0.2);
+    border: 1px solid rgba(59, 76, 202, 0.5);
+    border-radius: 10px;
+    padding: 15px;
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: rgba(59, 76, 202, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(59, 76, 202, 0.3);
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 5px #A664A5, 0 0 10px #A664A5;
+    }
+    to {
+        text-shadow: 0 0 10px #A664A5, 0 0 20px #A664A5;
+    }
+}
+
+@media (max-width: 768px) {
+    .voice-content {
+        flex-direction: column;
+    }
+    
+    .voice-image img {
+        max-width: 100%;
+    }
+}
+
 .timeline-item:nth-child(even) .timeline-date {
     right: auto;
     left: calc(100% + 40px);
@@ -1123,6 +1236,28 @@
                 <div class="tip-card">
                     <h3>Define Scale</h3>
                     <p>Include size references. Example: "miniature fairy house the size of a coffee cup"</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="voice-agents-section">
+        <div class="voice-container">
+            <h1 class="voice-title">DITTO AI VOICE AGENTS</h1>
+            <h2 class="voice-subtitle">COMING SOON</h2>
+            <div class="voice-content">
+                <div class="voice-image">
+                    <img src="/api/placeholder/400/400" alt="Voice Agent Placeholder" class="hologram-effect">
+                </div>
+                <div class="voice-info">
+                    <h3>Create & Clone Voice AI</h3>
+                    <p>Train personalized AI voice agents with advanced speech capabilities. Coming soon to DittoAI.</p>
+                    <div class="feature-list">
+                        <div class="feature-item">Advanced Voice Framework</div>
+                        <div class="feature-item">Multimodal Integration</div>
+                        <div class="feature-item">24/7 Voice Interaction</div>
+                        <div class="feature-item">Customizable Personas</div>
+                    </div>
                 </div>
             </div>
         </div>
