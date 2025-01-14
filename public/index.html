@@ -1377,18 +1377,6 @@ function addMessage(message, type) {
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
 
-        // Preview selection handling
-document.querySelectorAll('.preview-item').forEach(item => {
-    item.addEventListener('click', () => {
-        if (item.dataset.taskId) {
-            document.querySelectorAll('.preview-item').forEach(i => i.classList.remove('selected'));
-            item.classList.add('selected');
-            selectedPreviewId = item.dataset.taskId;
-            document.getElementById('generate-final').disabled = false;
-        }
-    });
-});
-
 // Generate final model button
 document.getElementById('generate-final').addEventListener('click', async () => {
     if (!selectedPreviewId) return;
