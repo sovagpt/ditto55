@@ -440,6 +440,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: opacity 0.5s ease;
 }
 
 .scan-line {
@@ -1535,37 +1536,27 @@
             <div class="voice-content">
                 <div class="voice-list">
                     <div class="voice-list-title">// CLICK TO LISTEN //</div>
-                    <div class="voice-item active" data-character="elon">
+                    <div class="voice-item" data-character="elon">
                         <div class="voice-icon">▶</div>
                         Elon Musk
                     </div>
-                    <div class="voice-item" data-character="andrew">
+                    <div class="voice-item" data-character="ksi">
                         <div class="voice-icon">▶</div>
-                        Andrew Tate
+                        KSI
                     </div>
-                    <div class="voice-item" data-character="mrbeast">
+                    <div class="voice-item" data-character="gary">
                         <div class="voice-icon">▶</div>
-                        Mr Beast
+                        Gary Vee
                     </div>
-                    <div class="voice-item" data-character="trump">
+                    <div class="voice-item" data-character="joeydiaz">
                         <div class="voice-icon">▶</div>
-                        Donald Trump
-                    </div>
-                    <div class="voice-item" data-character="cz">
-                        <div class="voice-icon">▶</div>
-                        CZ
-                    </div>
-                    <div class="voice-item" data-character="ansem">
-                        <div class="voice-icon">▶</div>
-                        Ansem
-                    </div>
-                    <div class="voice-item" data-character="akura">
-                        <div class="voice-icon">▶</div>
-                        Akura Sakui
+                        Joey Diaz
                     </div>
                 </div>
                 <div class="hologram-display">
-                    <img id="character-morph" src="path-to-ditto.gif" alt="Morphing Character" class="hologram-effect">
+                    <video id="character-morph" class="hologram-effect" playsinline>
+                        <source src="path-to-default-ditto.mp4" type="video/mp4">
+                    </video>
                     <div class="scan-line"></div>
                 </div>
                 <div class="voice-info">
@@ -2280,17 +2271,28 @@ function addMessage(message, type) {
     const voiceItems = document.querySelectorAll('.voice-item');
     const characterMorph = document.getElementById('character-morph');
     
+    // Add video ended event listener
+    const videoElement = document.getElementById('character-morph');
+    videoElement.addEventListener('ended', () => {
+        // Reset to initial state
+        voiceItems.forEach(i => i.classList.remove('active'));
+        videoElement.style.opacity = '0';
+    });
+    
     // Audio and GIF paths will be added later
     const characters = {
         elon: {
-            gif: 'path-to-elon.gif',
-            audio: 'path-to-elon.mp3'
+            video: '/assets/videos/elon.mp4'
         },
-        andrew: {
-            gif: 'path-to-andrew.gif',
-            audio: 'path-to-andrew.mp3'
+        ksi: {
+            video: '/assets/videos/ksi.mp4'
         },
-        // Add other characters here
+        gary: {
+            video: '/assets/videos/gary.mp4'
+        },
+        joeydiaz: {
+            video: '/assets/videos/joeydiaz.mp4'
+        }
     };
 
     let currentAudio = null;
@@ -2304,26 +2306,24 @@ function addMessage(message, type) {
             item.classList.add('active');
             
             const character = item.dataset.character;
+            const video = document.getElementById('character-morph');
             
-            // Stop current audio if playing
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
+            // Fade out current video
+            video.style.opacity = '0';
             
-            // Change the GIF (once you have the actual paths)
-            characterMorph.style.opacity = '0';
             setTimeout(() => {
-                // characterMorph.src = characters[character].gif;
-                characterMorph.style.opacity = '1';
+                // Update video source and play
+                if (characters[character]?.video) {
+                    video.src = characters[character].video;
+                    video.load();
+                    video.play();
+                    video.style.opacity = '1';
+                }
             }, 500);
-            
-            // Play the audio (once you have the actual paths)
-            // currentAudio = new Audio(characters[character].audio);
-            // currentAudio.play();
         });
     });
 
+    // Rest of your existing code...
     // Generate final model button
     document.getElementById('generate-final').addEventListener('click', async () => {
         if (!selectedPreviewId) return;
