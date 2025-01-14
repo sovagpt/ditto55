@@ -1649,6 +1649,10 @@
                         <div class="voice-icon">▶</div>
                         Joey Diaz
                     </div>
+                    <div class="voice-item" data-character="pokimane">
+                        <div class="voice-icon">▶</div>
+                        Pokimane
+                    </div>
                 </div>
                 <div class="hologram-display">
                     <video id="character-morph" class="hologram-effect" playsinline>
@@ -2459,19 +2463,22 @@ document.querySelector('.hologram-display').appendChild(blueOverlay);
     });
 
     const characters = {
-        elon: {
-            video: '/assets/videos/elon.mp4'
-        },
-        ksi: {
-            video: '/assets/videos/ksi.mp4'
-        },
-        gary: {
-            video: '/assets/videos/gary.mp4'
-        },
-        joeydiaz: {
-            video: '/assets/videos/joeydiaz.mp4'
-        }
-    };
+    elon: {
+        video: '/assets/videos/elon.mp4'
+    },
+    ksi: {
+        video: '/assets/videos/ksi.mp4'
+    },
+    gary: {
+        video: '/assets/videos/gary.mp4'
+    },
+    joeydiaz: {
+        video: '/assets/videos/joeydiaz.mp4'
+    },
+    pokimane: {
+        video: '/assets/videos/pokimane.mp4'
+    }
+};
 
     voiceItems.forEach(item => {
         item.addEventListener('click', () => {
