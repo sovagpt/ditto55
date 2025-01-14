@@ -165,6 +165,183 @@
     font-size: 12px;
 }
 
+.roadmap-section {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 60px 20px;
+    margin-top: 0;
+    backdrop-filter: blur(5px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.roadmap-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.roadmap-title {
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 32px;
+    color: white;
+    text-align: center;
+    margin-bottom: 60px;
+    text-shadow: 2px 2px 0 #3B4CCA;
+}
+
+.timeline {
+    position: relative;
+    padding: 40px 0;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #3B4CCA, #A664A5);
+    border-radius: 2px;
+}
+
+.timeline-item {
+    margin-bottom: 60px;
+    position: relative;
+    width: 100%;
+}
+
+.timeline-content {
+    width: 45%;
+    margin-left: auto;
+    position: relative;
+}
+
+.timeline-item:nth-child(even) .timeline-content {
+    margin-left: 0;
+    margin-right: auto;
+}
+
+.timeline-date {
+    position: absolute;
+    top: 0;
+    right: calc(100% + 40px);
+    background: #3B4CCA;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    box-shadow: 0 0 15px rgba(59, 76, 202, 0.3);
+}
+
+.timeline-item:nth-child(even) .timeline-date {
+    right: auto;
+    left: calc(100% + 40px);
+}
+
+.timeline-dot {
+    position: absolute;
+    top: 15px;
+    right: -47%;
+    width: 20px;
+    height: 20px;
+    background: #A664A5;
+    border-radius: 50%;
+    border: 4px solid #3B4CCA;
+    box-shadow: 0 0 15px rgba(166, 100, 165, 0.5);
+}
+
+.timeline-item:nth-child(even) .timeline-dot {
+    right: auto;
+    left: -47%;
+}
+
+.timeline-box {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 30px;
+    margin-top: 40px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.timeline-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 25px rgba(59, 76, 202, 0.2);
+}
+
+.timeline-box h3 {
+    color: #A664A5;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.timeline-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.timeline-box li {
+    color: white;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    margin-bottom: 15px;
+    line-height: 1.6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.done {
+    color: #4CAF50;
+}
+
+.in-progress {
+    color: #FFD700;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@media (max-width: 768px) {
+    .timeline::before {
+        left: 30px;
+    }
+    
+    .timeline-content {
+        width: calc(100% - 80px);
+        margin-left: 80px;
+    }
+    
+    .timeline-item:nth-child(even) .timeline-content {
+        margin-left: 80px;
+    }
+    
+    .timeline-date {
+        right: auto;
+        left: 80px;
+    }
+    
+    .timeline-item:nth-child(even) .timeline-date {
+        left: 80px;
+    }
+    
+    .timeline-dot {
+        left: 22px;
+        right: auto;
+    }
+    
+    .timeline-item:nth-child(even) .timeline-dot {
+        left: 22px;
+    }
+}
+
 .showcase-section {
     background-color: rgba(0, 0, 0, 0.7);
     padding: 60px 20px;
@@ -811,6 +988,78 @@
                     </div>
                     <div class="showcase-item">
                         <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/67859f953efd0c678e78d259_41324.png" alt="DittoAI Creation 10" class="showcase-img">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="roadmap-section">
+        <div class="roadmap-container">
+            <h1 class="roadmap-title">ROADMAP</h1>
+            
+            <div class="timeline">
+                <div class="timeline-item current">
+                    <div class="timeline-content">
+                        <div class="timeline-date">Q1 2025</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-box">
+                            <h3>Core Features</h3>
+                            <ul>
+                                <li><span class="done">✓</span> Text to 3D Generation</li>
+                                <li><span class="done">✓</span> Image to 3D Conversion</li>
+                                <li><span class="done">✓</span> Community Showcase</li>
+                                <li><span class="in-progress">→</span> Animation Library</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-date">Q2 2025</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-box">
+                            <h3>Enhanced Creation</h3>
+                            <ul>
+                                <li>Advanced Material Editor</li>
+                                <li>Custom Texture Generation</li>
+                                <li>Batch Processing</li>
+                                <li>Asset Library Integration</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-date">Q3 2025</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-box">
+                            <h3>Professional Tools</h3>
+                            <ul>
+                                <li>Game Engine Export Tools</li>
+                                <li>Professional Workspace</li>
+                                <li>Team Collaboration</li>
+                                <li>Version Control System</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-date">Q4 2025</div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-box">
+                            <h3>Advanced Features</h3>
+                            <ul>
+                                <li>Real-time Collaboration</li>
+                                <li>VR/AR Support</li>
+                                <li>API Access</li>
+                                <li>Custom Plugins</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
