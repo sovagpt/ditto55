@@ -673,6 +673,20 @@
     max-width: 700px;  /* Slightly reduced from 800px */
 }
 
+.chevron {
+    color: #3B4CCA;  /* Using your theme's blue color */
+    font-size: 24px; /* Increased size */
+    padding: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    transition: transform 0.3s ease;
+    text-shadow: 0 0 10px rgba(59, 76, 202, 0.5); /* Adding glow effect */
+}
+
+.chevron.active {
+    transform: rotate(180deg);
+}
+
 .preview-content h2 {
     color: white;
     font-family: 'Press Start 2P', system-ui;
@@ -1290,16 +1304,15 @@
             </div>
         </div>
     
-        <div class="chat-terminal">
-            <div class="terminal-header" onclick="toggleRoleMenu()">
-                <div class="header-content">
-                    <div class="title-with-status">
-                        <span>Ditto 3D Object Generation</span>
-                        <div class="status-dot blink"></div>
-                    </div>
-                    <span class="chevron">▼</span>
+        <div class="terminal-header" onclick="toggleRoleMenu()">
+            <div class="header-content">
+                <div class="title-with-status">
+                    <span>Ditto 3D Object Generation</span>
+                    <div class="status-dot blink"></div>
                 </div>
+                <div class="chevron">⯆</div>  <!-- Changed from ▼ to ⯆ and wrapped in div -->
             </div>
+        </div>
             
             <div class="role-menu" id="roleMenu">
                 <div class="role-grid">
@@ -2072,10 +2085,10 @@ function toggleRoleMenu() {
     
     if (menu.style.display === 'none' || menu.style.display === '') {
         menu.style.display = 'block';
-        chevron.style.transform = 'rotate(180deg)';
+        chevron.classList.add('active');
     } else {
         menu.style.display = 'none';
-        chevron.style.transform = 'rotate(0deg)';
+        chevron.classList.remove('active');
     }
 }
 
