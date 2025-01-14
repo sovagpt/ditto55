@@ -219,13 +219,14 @@
     </div>
     <script>
         let scene, camera, renderer, controls;
-        const models = [];
-        const modelScale = 0.5;
-        const API_BASE_URL = window.location.origin;
+let terminalRenderer, terminalScene, terminalCamera, terminalControls, activeModel;
+const models = [];
+const modelScale = 0.5;
+const API_BASE_URL = window.location.origin;
 
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-        let hoveredModel = null;
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let hoveredModel = null;
 
         async function downloadModel(modelUrl) {
             try {
@@ -250,63 +251,75 @@
         }
 
         async function init() {
-            console.log('Initializing scene...');
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xffffff);
-            
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.z = 15;
-            camera.position.y = 2;
+    console.log('Initializing scene...');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
+    
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 15;
+    camera.position.y = 2;
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 10, 10);
-            scene.add(directionalLight);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(10, 10, 10);
+    scene.add(directionalLight);
 
-            controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.05;
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
 
-            const fontLoader = new THREE.FontLoader();
-            fontLoader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function(font) {
-                const textGeometry = new THREE.TextGeometry('Community Creations', {
-                    font: font,
-                    size: 1.5,
-                    height: 0.2,
-                    curveSegments: 12,
-                    bevelEnabled: true,
-                    bevelThickness: 0.02,
-                    bevelSize: 0.01,
-                    bevelOffset: 0,
-                    bevelSegments: 5
-                });
+    const fontLoader = new THREE.FontLoader();
+    fontLoader.load('https://threejs.org/examples/fonts/helvetiker_bold.typeface.json', function(font) {
+        const textGeometry = new THREE.TextGeometry('Community Creations', {
+            font: font,
+            size: 1.5,
+            height: 0.2,
+            curveSegments: 12,
+            bevelEnabled: true,
+            bevelThickness: 0.02,
+            bevelSize: 0.01,
+            bevelOffset: 0,
+            bevelSegments: 5
+        });
 
-                textGeometry.computeBoundingBox();
-                const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
-                
-                const material = new THREE.MeshPhongMaterial({ 
-                    color: 0xA664A5,
-                    specular: 0x555555,
-                    shininess: 30
-                });
-                
-                const textMesh = new THREE.Mesh(textGeometry, material);
-                textMesh.position.x = -textWidth / 2;
-                textMesh.position.y = 5;
-                textMesh.position.z = -2;
-                scene.add(textMesh);
-            });
+        textGeometry.computeBoundingBox();
+        const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
+        
+        const material = new THREE.MeshPhongMaterial({ 
+            color: 0xA664A5,
+            specular: 0x555555,
+            shininess: 30
+        });
+        
+        const textMesh = new THREE.Mesh(textGeometry, material);
+        textMesh.position.x = -textWidth / 2;
+        textMesh.position.y = 5;
+        textMesh.position.z = -2;
+        scene.add(textMesh);
+    });
 
-            await loadCommunityModels();
-            document.querySelector('.loading').style.display = 'none';
-            animate();
-        }
+    await loadCommunityModels();
+    document.querySelector('.loading').style.display = 'none';
+    animateMain(); // Changed from animate() to animateMain()
+}
+
+// Add this new function for the main scene animation
+function animateMain() {
+    requestAnimationFrame(animateMain);
+    
+    models.forEach(model => {
+        model.rotation.y += 0.005;
+    });
+
+    controls.update();
+    renderer.render(scene, camera);
+}
 
         async function loadCommunityModels() {
             try {
@@ -467,6 +480,17 @@
         }
     }
 });
+
+function animateMain() {
+    requestAnimationFrame(animateMain);
+    
+    models.forEach(model => {
+        model.rotation.y += 0.005;
+    });
+
+    controls.update();
+    renderer.render(scene, camera);
+}
 
 function animate() {
     requestAnimationFrame(animate);
