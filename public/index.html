@@ -1377,154 +1377,154 @@ function addMessage(message, type) {
             renderer.setSize(window.innerWidth, window.innerHeight);
         };
 
-// Generate final model button
-document.getElementById('generate-final').addEventListener('click', async () => {
-    if (!selectedPreviewId) return;
-    
-    document.getElementById('preview-modal').style.display = 'none';
-    const statusElement = document.getElementById('status');
-    statusElement.style.display = 'block';
-    statusElement.textContent = 'Generating final model...';
-    updateProgress(75);
-
-    try {
-        const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                mode: "refine",
-                preview_task_id: selectedPreviewId,
-                enable_pbr: true
-            })
-        });
-
-        if (!refineResponse.ok) throw new Error('Refine process failed');
-        
-        const refineData = await refineResponse.json();
-        const refineTaskId = refineData.result;
-
-        // Monitor refine status
-        let refineStatus;
-        do {
-            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineTaskId}`, {
-                headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-            });
-            const statusData = await statusResponse.json();
-            refineStatus = statusData.status;
-            downloadUrl = statusData.model_urls?.glb;
-            statusElement.textContent = `Refining: ${refineStatus}`;
-            updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
-
-            if (refineStatus === 'SUCCEEDED' && downloadUrl) {
-                const localUrl = await downloadAndCreateBlob(downloadUrl);
-                
-                const loader = new THREE.GLTFLoader();
-                loader.load(localUrl, (gltf) => {
-                    URL.revokeObjectURL(localUrl);
-                    if (currentModel) scene.remove(currentModel);
-                    
-                    const newModel = gltf.scene;
-                    currentModel = newModel;
-                    scene.add(newModel);
-                    newModel.scale.set(0, 0, 0);
-                    
-                    // Ditto disappearing animation
-                    gsap.to(dittoModel.scale, {
-                        x: 0, y: 0, z: 0,
-                        duration: 1,
-                        ease: "power2.in"
-                    });
-
-                    // Scale up new model
-                    gsap.to(newModel.scale, {
-                        x: 2, y: 2, z: 2,
-                        duration: 1,
-                        delay: 1,
-                        ease: "power2.out",
-                        onComplete: () => {
-                            gsap.to(newModel.rotation, {
-                                y: Math.PI * 2,
-                                duration: 2,
-                                ease: "power1.inOut"
-                            });
-                            document.querySelector('.animate-btn').style.display = 'block';
-                            document.querySelector('.download-btn').style.display = 'block';
-                        }
-                    });
-                });
-                
-                addMessage('Final model generated successfully! You can now download or animate the model. ~', 'assistant');
-                return;
-            }
-
-            if (refineStatus === 'FAILED') throw new Error('Refine process failed');
-            
-            await new Promise(r => setTimeout(r, 2000));
-        } while (refineStatus === 'PENDING' || refineStatus === 'IN_PROGRESS');
-
-    } catch (error) {
-        console.error('Final generation failed:', error);
-        addMessage('Sorry, the final generation failed. Please try again. ~', 'assistant');
-    } finally {
-        statusElement.style.display = 'none';
-    }
-});
-
-// Cancel button
-document.getElementById('cancel-preview').addEventListener('click', () => {
-    document.getElementById('preview-modal').style.display = 'none';
-});
-
-// Update your click handlers
-document.querySelector('.animate-btn').onclick = function() {
-    document.querySelector('.animation-preview').style.display = 'block';
-    document.querySelector('.overlay').style.display = 'block';
-}
-
-document.querySelector('.close-btn').onclick = function() {
-    document.querySelector('.animation-preview').style.display = 'none';
-    document.querySelector('.overlay').style.display = 'none';
-}
-
-// Add click handler for the overlay
-document.querySelector('.overlay').onclick = function() {
-    document.querySelector('.animation-preview').style.display = 'none';
-    document.querySelector('.overlay').style.display = 'none';
-}
-
-document.querySelector('.send-btn').addEventListener('click', async () => {
-    const input = document.querySelector('.chat-input');
-    const message = input.value.trim();
-    if (message) {
-        addMessage(message, 'user');
-        input.value = '';
-        await handleAIResponse(message);
-    }
-});
-
-// Transform button click handler for 3D object creation
-document.querySelector('.transform-btn').addEventListener('click', () => {
-    const promptInput = document.getElementById('prompt');
-    const prompt = promptInput.value.trim();
-    if (prompt) {
-        transform(prompt);
-        promptInput.value = '';
-    }
-});
-
 document.addEventListener('DOMContentLoaded', () => {
+    // Existing showcase track code
     const track = document.querySelector('.showcase-track');
     if (track) {
-        // Clone the items to create a seamless loop
         const items = track.querySelectorAll('.showcase-item');
         items.forEach(item => {
             const clone = item.cloneNode(true);
             track.appendChild(clone);
         });
     }
+
+    // Generate final model button
+    document.getElementById('generate-final').addEventListener('click', async () => {
+        if (!selectedPreviewId) return;
+        
+        document.getElementById('preview-modal').style.display = 'none';
+        const statusElement = document.getElementById('status');
+        statusElement.style.display = 'block';
+        statusElement.textContent = 'Generating final model...';
+        updateProgress(75);
+
+        try {
+            const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${MESHY_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    mode: "refine",
+                    preview_task_id: selectedPreviewId,
+                    enable_pbr: true
+                })
+            });
+
+            if (!refineResponse.ok) throw new Error('Refine process failed');
+            
+            const refineData = await refineResponse.json();
+            const refineTaskId = refineData.result;
+
+            // Monitor refine status
+            let refineStatus;
+            do {
+                const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineTaskId}`, {
+                    headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
+                });
+                const statusData = await statusResponse.json();
+                refineStatus = statusData.status;
+                downloadUrl = statusData.model_urls?.glb;
+                statusElement.textContent = `Refining: ${refineStatus}`;
+                updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
+
+                if (refineStatus === 'SUCCEEDED' && downloadUrl) {
+                    const localUrl = await downloadAndCreateBlob(downloadUrl);
+                    
+                    const loader = new THREE.GLTFLoader();
+                    loader.load(localUrl, (gltf) => {
+                        URL.revokeObjectURL(localUrl);
+                        if (currentModel) scene.remove(currentModel);
+                        
+                        const newModel = gltf.scene;
+                        currentModel = newModel;
+                        scene.add(newModel);
+                        newModel.scale.set(0, 0, 0);
+                        
+                        // Ditto disappearing animation
+                        gsap.to(dittoModel.scale, {
+                            x: 0, y: 0, z: 0,
+                            duration: 1,
+                            ease: "power2.in"
+                        });
+
+                        // Scale up new model
+                        gsap.to(newModel.scale, {
+                            x: 2, y: 2, z: 2,
+                            duration: 1,
+                            delay: 1,
+                            ease: "power2.out",
+                            onComplete: () => {
+                                gsap.to(newModel.rotation, {
+                                    y: Math.PI * 2,
+                                    duration: 2,
+                                    ease: "power1.inOut"
+                                });
+                                document.querySelector('.animate-btn').style.display = 'block';
+                                document.querySelector('.download-btn').style.display = 'block';
+                            }
+                        });
+                    });
+                    
+                    addMessage('Final model generated successfully! You can now download or animate the model. ~', 'assistant');
+                    return;
+                }
+
+                if (refineStatus === 'FAILED') throw new Error('Refine process failed');
+                
+                await new Promise(r => setTimeout(r, 2000));
+            } while (refineStatus === 'PENDING' || refineStatus === 'IN_PROGRESS');
+
+        } catch (error) {
+            console.error('Final generation failed:', error);
+            addMessage('Sorry, the final generation failed. Please try again. ~', 'assistant');
+        } finally {
+            statusElement.style.display = 'none';
+        }
+    });
+
+    // Cancel button
+    document.getElementById('cancel-preview').addEventListener('click', () => {
+        document.getElementById('preview-modal').style.display = 'none';
+    });
+
+    // Animation and overlay handlers
+    document.querySelector('.animate-btn').addEventListener('click', () => {
+        document.querySelector('.animation-preview').style.display = 'block';
+        document.querySelector('.overlay').style.display = 'block';
+    });
+
+    document.querySelector('.close-btn').addEventListener('click', () => {
+        document.querySelector('.animation-preview').style.display = 'none';
+        document.querySelector('.overlay').style.display = 'none';
+    });
+
+    document.querySelector('.overlay').addEventListener('click', () => {
+        document.querySelector('.animation-preview').style.display = 'none';
+        document.querySelector('.overlay').style.display = 'none';
+    });
+
+    // Send button
+    document.querySelector('.send-btn').addEventListener('click', async () => {
+        const input = document.querySelector('.chat-input');
+        const message = input.value.trim();
+        if (message) {
+            addMessage(message, 'user');
+            input.value = '';
+            await handleAIResponse(message);
+        }
+    });
+
+    // Transform button
+    document.querySelector('.transform-btn').addEventListener('click', () => {
+        const promptInput = document.getElementById('prompt');
+        const prompt = promptInput.value.trim();
+        if (prompt) {
+            transform(prompt);
+            promptInput.value = '';
+        }
+    });
 });
     </script>
     <div class="overlay" id="overlay"></div>
