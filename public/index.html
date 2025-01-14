@@ -778,6 +778,36 @@
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 30px;
     padding: 20px;
+    margin-bottom: 40px;
+}
+
+.tips-gif-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0 20px;
+}
+
+.tips-gif {
+    width: 100%;
+    max-width: 800px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    box-shadow: 0 5px 25px rgba(59, 76, 202, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.tips-gif:hover {
+    transform: translateY(-5px);
+}
+
+.tips-demo-gif {
+    width: 100%;
+    height: auto;
+    display: block;
 }
 
 .tip-card {
@@ -1450,6 +1480,11 @@
                 <div class="tip-card">
                     <h3>Define Scale</h3>
                     <p>Include size references. Example: "miniature fairy house the size of a coffee cup"</p>
+                </div>
+            </div>
+            <div class="tips-gif-container">
+                <div class="tips-gif">
+                    <img src="https://cdn.prod.website-files.com/674396c59212c6ea348b24e0/678697597e9b7e08c15e3fb9_1434%20(1).gif" alt="Ditto Transformation Demo" class="tips-demo-gif">
                 </div>
             </div>
         </div>
