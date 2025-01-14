@@ -1292,14 +1292,14 @@
     
         <div class="chat-terminal">
             <div class="terminal-header" onclick="toggleRoleMenu()">
-                <div class="header-content">
-                    <div class="title-with-status">
-                        <span>Ditto 3D Object Generation</span>
-                        <div class="status-dot blink"></div>
-                    </div>
-                    <span class="chevron" style="color: #A664A5; font-size: 16px; font-family: 'Press Start 2P', system-ui;">MORPH</span>
-                </div>
-            </div>
+    <div class="header-content">
+        <div class="title-with-status">
+            <span>Ditto 3D Object Generation</span>
+            <div class="status-dot blink"></div>
+        </div>
+        <span class="chevron" style="color: #A664A5; font-size: 16px; font-family: 'Press Start 2P', system-ui;">MORPH</span>
+    </div>
+</div>
             
             <div class="role-menu" id="roleMenu">
                 <div class="role-grid">
@@ -2068,11 +2068,14 @@ async function transform(promptText) {
 
 function toggleRoleMenu() {
     const menu = document.getElementById('roleMenu');
+    const chevron = document.querySelector('.chevron');
     
     if (menu.style.display === 'none' || menu.style.display === '') {
         menu.style.display = 'block';
+        chevron.style.transform = 'rotate(180deg)';
     } else {
         menu.style.display = 'none';
+        chevron.style.transform = 'rotate(0deg)';
     }
 }
 
