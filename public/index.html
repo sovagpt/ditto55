@@ -441,6 +441,9 @@
     height: 100%;
     object-fit: cover;
     transition: opacity 0.5s ease;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .scan-line {
@@ -2266,53 +2269,56 @@ function addMessage(message, type) {
         });
     }
 
-    // Voice agent morphing and audio code
+    // Voice agent morphing and video code
     const voiceItems = document.querySelectorAll('.voice-item');
     const characterMorph = document.getElementById('character-morph');
     
-    // Add video ended event listener
+    // Set up initial Ditto state
     const videoElement = document.getElementById('character-morph');
+    videoElement.style.backgroundImage = "url('/assets/videos/ditto.gif')";
+    videoElement.style.backgroundSize = "cover";
+    videoElement.style.backgroundPosition = "center";
+    
     videoElement.addEventListener('ended', () => {
         // Reset to initial state
         voiceItems.forEach(i => i.classList.remove('active'));
         videoElement.style.opacity = '0';
+        
+        setTimeout(() => {
+            videoElement.src = ''; // Clear video source
+            videoElement.style.backgroundImage = "url('/assets/videos/ditto.gif')";
+            videoElement.style.opacity = '1';
+        }, 500);
     });
-    
-    // Audio and GIF paths will be added later
-    const characters = {
-    elon: {
-        video: '/assets/videos/elon.mp4'  // Note the leading slash
-    },
-    ksi: {
-        video: '/assets/videos/ksi.mp4'
-    },
-    gary: {
-        video: '/assets/videos/gary.mp4'
-    },
-    joeydiaz: {
-        video: '/assets/videos/joeydiaz.mp4'
-    }
-};
 
-    let currentAudio = null;
+    const characters = {
+        elon: {
+            video: '/assets/videos/elon.mp4'
+        },
+        ksi: {
+            video: '/assets/videos/ksi.mp4'
+        },
+        gary: {
+            video: '/assets/videos/gary.mp4'
+        },
+        joeydiaz: {
+            video: '/assets/videos/joeydiaz.mp4'
+        }
+    };
 
     voiceItems.forEach(item => {
         item.addEventListener('click', () => {
-            // Remove active class from all items
             voiceItems.forEach(i => i.classList.remove('active'));
-            
-            // Add active class to clicked item
             item.classList.add('active');
             
             const character = item.dataset.character;
             const video = document.getElementById('character-morph');
             
-            // Fade out current video
             video.style.opacity = '0';
             
             setTimeout(() => {
-                // Update video source and play
                 if (characters[character]?.video) {
+                    video.style.backgroundImage = 'none'; // Hide background image
                     video.src = characters[character].video;
                     video.load();
                     video.play();
@@ -2322,7 +2328,6 @@ function addMessage(message, type) {
         });
     });
 
-    // Rest of your existing code...
     // Generate final model button
     document.getElementById('generate-final').addEventListener('click', async () => {
         if (!selectedPreviewId) return;
