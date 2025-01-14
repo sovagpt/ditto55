@@ -514,9 +514,9 @@
        }
 
        .progress-bar {
-           position: absolute;
-           top: 30%;
-           left: 25%;
+        position: relative;
+           top: 25%;
+           left: 35%;
            transform: translate(-50%, -50%);
            width: 200px;
            height: 20px;
@@ -536,6 +536,19 @@
            width: 0%;
            transition: width 0.3s;
        }
+
+       .progress-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: black;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 10px;
+    z-index: 1003;
+    text-shadow: none;
+    pointer-events: none;
+}
 
        .animate-btn {
            position: absolute;
@@ -724,6 +737,7 @@
             </div>
             <div class="progress-bar">
                 <div class="progress-fill"></div>
+                <span class="progress-percentage">0%</span>
             </div>
         </div>
     </div>
@@ -1139,11 +1153,13 @@ async function imageToModel(file) {
         });
 
         function updateProgress(percent) {
-            const bar = document.querySelector('.progress-bar');
-            const fill = document.querySelector('.progress-fill');
-            bar.style.display = 'block';
-            fill.style.width = `${percent}%`;
-        }
+    const bar = document.querySelector('.progress-bar');
+    const fill = document.querySelector('.progress-fill');
+    const percentText = document.querySelector('.progress-percentage');
+    bar.style.display = 'block';
+    fill.style.width = `${percent}%`;
+    percentText.textContent = `${Math.round(percent)}%`;
+}
 
         async function saveToDatabase(modelUrl, prompt) {
     try {
@@ -1288,11 +1304,23 @@ async function loadPreviewModel(modelUrl, container) {
     controls.autoRotate = true; // Add auto-rotation
     controls.autoRotateSpeed = 4; // Adjust rotation speed
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-    directionalLight.position.set(5, 5, 5);
-    scene.add(directionalLight);
+    // In loadPreviewModel function, replace the lighting setup with:
+const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); // Increased from 0.7
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // Increased from 0.5
+directionalLight.position.set(5, 5, 5);
+scene.add(directionalLight);
+
+// Add a second directional light from another angle
+const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+directionalLight2.position.set(-5, 5, -5);
+scene.add(directionalLight2);
+
+// Add a soft light from below for better visibility
+const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
+bottomLight.position.set(0, -5, 0);
+scene.add(bottomLight);
 
     camera.position.z = 5;
 
