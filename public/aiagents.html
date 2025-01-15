@@ -271,8 +271,7 @@
         <div class="dialog-box">
             <div class="input-group">
                 <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
-                <input type="file" id="imageUpload" accept="image/*" class="file-input">
-                <button onclick="document.getElementById('imageUpload').click()" class="transform-btn">Image to 3D</button>
+                <button class="transform-btn">Transform</button>
             </div>
         </div>
     
@@ -291,8 +290,7 @@
     </div>
 
     <script>
-        // Three.js scene setup and management
-let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, downloadUrl = null;
+        let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, downloadUrl = null;
 
 async function init() {
     // Initialize Three.js scene
@@ -432,30 +430,22 @@ function addMessage(message, type) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Handle file uploads for image-to-3D conversion
-async function handleImageUpload(file) {
-    // Implementation depends on your image-to-3D conversion API
-    console.log('Image upload handler needs to be implemented');
-}
-
-// Handle prompt input for text-to-3D conversion
+// Handle text-to-3D transformation
 function handleKeyDown(event) {
     if (event.key === 'Enter') {
         const prompt = event.target.value;
         if (prompt) {
-            // Implementation depends on your text-to-3D conversion API
-            console.log('Text-to-3D handler needs to be implemented');
+            transform(prompt);
             event.target.value = '';
         }
     }
 }
 
-// Utility function to download and create blob URLs
-async function downloadAndCreateBlob(url) {
-    const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
-    const response = await fetch(proxyUrl);
-    const blob = await response.blob();
-    return URL.createObjectURL(blob);
+// Transform function (implement your text-to-3D API here)
+async function transform(prompt) {
+    // Implementation depends on your text-to-3D API
+    console.log('Transform prompt:', prompt);
+    addMessage(`Starting transformation: ${prompt}`, 'assistant');
 }
 
 // Window event listeners
@@ -468,14 +458,6 @@ window.onresize = function() {
 
 // Add event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Image upload handler
-    document.getElementById('imageUpload')?.addEventListener('change', (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            handleImageUpload(file);
-        }
-    });
-
     // Send button handler
     document.querySelector('.send-btn')?.addEventListener('click', async () => {
         const input = document.querySelector('.chat-input');
@@ -484,6 +466,16 @@ document.addEventListener('DOMContentLoaded', () => {
             addMessage(message, 'user');
             input.value = '';
             await handleAIResponse(message);
+        }
+    });
+
+    // Transform button handler
+    document.querySelector('.transform-btn')?.addEventListener('click', () => {
+        const promptInput = document.getElementById('prompt');
+        const prompt = promptInput.value.trim();
+        if (prompt) {
+            transform(prompt);
+            promptInput.value = '';
         }
     });
 });
