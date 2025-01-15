@@ -356,15 +356,15 @@ async function loadDittoModel() {
                 action.play();
             }
 
-            // Increase scale more
+            // Keep same scale
             dittoModel.scale.set(6.5, 6.5, 6.5);
             
             // Position adjustments:
-            // Moved closer to camera and adjusted height
-            dittoModel.position.set(0, -3, -6);
+            // Bring her closer with z: -8
+            dittoModel.position.set(0, -3, -8);
             
-            // Rotate to face camera 
-            dittoModel.rotation.y = Math.PI * 1.5; // This will turn her 90 degrees to face camera
+            // Rotate additional 180 degrees (Math.PI * 2.5)
+            dittoModel.rotation.y = Math.PI * 2.5;
 
             resolve();
         });
