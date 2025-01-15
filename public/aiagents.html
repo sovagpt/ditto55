@@ -357,13 +357,13 @@ async function loadDittoModel() {
             }
 
             // Increase scale significantly
-            dittoModel.scale.set(3.5, 3.5, 3.5);
+            dittoModel.scale.set(4.5, 4.5, 4.5);
             
             // Position adjustments:
             // x: left/right (0 is center)
             // y: up/down (negative moves down)
             // z: forward/back (negative moves closer to camera)
-            dittoModel.position.set(0, -2, -2);
+            dittoModel.position.set(0, -2, -4);
             
             // Rotate to face camera directly
             dittoModel.rotation.y = Math.PI;
