@@ -1,4 +1,13 @@
 {
+  "version": 2,
+  "builds": [
+    { "src": "public/**/*", "use": "@vercel/static" },
+    { "src": "api/**/*.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/public/$1" }
+  ],
   "env": {
     "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK",
     "ELEVENLABS_API_KEY": "sk_7b37cf7505be75e6ebda6162402712ce525850619ab92183",
