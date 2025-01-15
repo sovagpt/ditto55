@@ -6,7 +6,8 @@
     }
   },
   "routes": [
-    { "src": "/ruri", "dest": "/ruri.html" }
+    { "src": "/ruri", "dest": "/ruri.html" },
+    { "src": "/community", "dest": "/community.html" }
   ],
   "env": {
     "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK",
