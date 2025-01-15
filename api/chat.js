@@ -38,11 +38,11 @@ export default async function handler(req, res) {
             })
         });
 
-        // Add timeout to Claude request
+        // Add timeout to Claude request - increased to 45 seconds
         const claudeResponse = await Promise.race([
             claudePromise,
             new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Claude API timeout')), 25000)
+                setTimeout(() => reject(new Error('Claude API timeout')), 45000)
             )
         ]);
 
