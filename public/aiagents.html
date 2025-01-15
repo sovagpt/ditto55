@@ -268,13 +268,7 @@
             </div>
         </div>
     
-        <div class="dialog-box">
-            <div class="input-group">
-                <input type="text" id="prompt" placeholder="What should Ditto transform into?" onkeydown="handleKeyDown(event)">
-                <button class="transform-btn">Transform</button>
-            </div>
-        </div>
-    
+
         <div class="chat-terminal">
             <div class="chat-messages">
                 <div class="message assistant-message">
@@ -290,7 +284,7 @@
     </div>
 
     <script>
-        let scene, camera, renderer, dittoModel, mixer, controls, currentModel = null, downloadUrl = null;
+        let scene, camera, renderer, dittoModel, mixer, controls;
 
 async function init() {
     // Initialize Three.js scene
@@ -430,24 +424,6 @@ function addMessage(message, type) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Handle text-to-3D transformation
-function handleKeyDown(event) {
-    if (event.key === 'Enter') {
-        const prompt = event.target.value;
-        if (prompt) {
-            transform(prompt);
-            event.target.value = '';
-        }
-    }
-}
-
-// Transform function (implement your text-to-3D API here)
-async function transform(prompt) {
-    // Implementation depends on your text-to-3D API
-    console.log('Transform prompt:', prompt);
-    addMessage(`Starting transformation: ${prompt}`, 'assistant');
-}
-
 // Window event listeners
 window.onload = init;
 window.onresize = function() {
@@ -466,16 +442,6 @@ document.addEventListener('DOMContentLoaded', () => {
             addMessage(message, 'user');
             input.value = '';
             await handleAIResponse(message);
-        }
-    });
-
-    // Transform button handler
-    document.querySelector('.transform-btn')?.addEventListener('click', () => {
-        const promptInput = document.getElementById('prompt');
-        const prompt = promptInput.value.trim();
-        if (prompt) {
-            transform(prompt);
-            promptInput.value = '';
         }
     });
 });
