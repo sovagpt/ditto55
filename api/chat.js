@@ -47,16 +47,12 @@ export default async function handler(req, res) {
         const textToSpeak = claudeData.content[0].text;
         console.log('Claude response received successfully');
 
-        // Log ElevenLabs configuration
-        console.log('ElevenLabs Config:', {
-            voiceId: process.env.ELEVENLABS_VOICE_ID,
-            apiKeyLength: process.env.ELEVENLABS_API_KEY?.length || 0
-        });
-
-        // Try ElevenLabs API
+        // Use Adam's voice ID instead of the custom one
+        const VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // Adam's voice ID
+        
         try {
-            const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`;
-            console.log('Calling ElevenLabs:', elevenLabsUrl);
+            const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`;
+            console.log('Calling ElevenLabs with voice ID:', VOICE_ID);
             
             const voiceResponse = await fetch(elevenLabsUrl, {
                 method: 'POST',
@@ -75,8 +71,6 @@ export default async function handler(req, res) {
                 })
             });
 
-            console.log('ElevenLabs response status:', voiceResponse.status);
-
             if (!voiceResponse.ok) {
                 const errorText = await voiceResponse.text();
                 throw new Error(`ElevenLabs API error: ${errorText}`);
@@ -92,13 +86,6 @@ export default async function handler(req, res) {
             });
         } catch (voiceError) {
             console.error('Voice generation error:', voiceError);
-            // Log the full error details
-            console.error({
-                message: voiceError.message,
-                stack: voiceError.stack,
-                status: voiceError.status
-            });
-            
             // Return text-only response if voice fails
             return res.status(200).json(claudeData);
         }
