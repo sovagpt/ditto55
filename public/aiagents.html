@@ -130,6 +130,47 @@
             align-items: center;
         }
 
+        .voice-controls {
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.voice-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.start-btn {
+    background: #4CAF50;
+    color: white;
+}
+
+.stop-btn {
+    background: #FF5350;
+    color: white;
+}
+
+.voice-btn:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+.voice-status {
+    font-family: 'Press Start 2P', system-ui;
+    font-size: 10px;
+    color: white;
+    text-align: center;
+}
+
         .chat-container {
             display: flex;
             max-width: 1800px;
@@ -270,9 +311,22 @@
     
 
         <div class="chat-terminal">
+            <div class="voice-controls">
+                <button onclick="startConversation()" class="voice-btn start-btn">
+                    Start Voice Chat
+                </button>
+                <button onclick="stopConversation()" class="voice-btn stop-btn">
+                    Stop Voice Chat
+                </button>
+                <div class="voice-status">
+                    <p>Status: <span id="voiceStatus">disconnected</span></p>
+                    <p>Agent is <span id="agentState">listening</span></p>
+                </div>
+            </div>
+            
             <div class="chat-messages">
                 <div class="message assistant-message">
-                    Hi! I'm DittoAI, a self-learning expert in 3D object generation! While I'm already skilled at creating 3D models, I'm constantly evolving and adding new capabilities. For example, I'm currently mastering AI voice agent technology! Let's talk while you wait for your generation - I'm here to guide you through the process. What would you like to create today? ~
+                    Hi! I'm DittoAI, a self-learning expert in 3D object generation with voice capabilities! Speak with me or type your messages. What would you like to create today? ~
                 </div>
             </div>
     
@@ -448,8 +502,137 @@ function addMessage(message, type) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Window event listeners
-window.onload = init;
+async function startConversation() {
+    try {
+        // Request microphone permission
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        const response = await fetch('/api/elevenlabs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                action: 'start'
+            })
+        });
+
+        if (!response.ok) throw new Error('Failed to start voice chat');
+        
+        document.getElementById('voiceStatus').textContent = 'connected';
+        document.getElementById('agentState').textContent = 'listening';
+        
+        // Start listening to microphone
+        startAudioCapture();
+        
+        addMessage('Voice chat started. You can speak now. ~', 'assistant');
+    } catch (error) {
+        console.error('Failed to start conversation:', error);
+        addMessage('Failed to start voice conversation. Please try again. ~', 'assistant');
+    }
+}
+
+async function stopConversation() {
+    try {
+        const response = await fetch('/api/elevenlabs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                action: 'stop'
+            })
+        });
+
+        if (!response.ok) throw new Error('Failed to stop voice chat');
+        
+        document.getElementById('voiceStatus').textContent = 'disconnected';
+        document.getElementById('agentState').textContent = 'disconnected';
+        
+        // Stop listening to microphone
+        stopAudioCapture();
+        
+        addMessage('Voice chat ended. ~', 'assistant');
+    } catch (error) {
+        console.error('Failed to stop conversation:', error);
+    }
+}
+
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingInterval = null;
+
+function startAudioCapture() {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks);
+                await sendAudioToServer(audioBlob);
+                audioChunks = [];
+            };
+            
+            // Record in 5-second intervals
+            mediaRecorder.start();
+            recordingInterval = setInterval(() => {  // Store interval reference
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                    mediaRecorder.start();
+                }
+            }, 5000);
+        });
+}
+
+function stopAudioCapture() {
+    if (mediaRecorder) {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        mediaRecorder = null;
+        if (recordingInterval) {  // Clear interval when stopping
+            clearInterval(recordingInterval);
+            recordingInterval = null;
+        }
+    }
+}
+
+async function sendAudioToServer(audioBlob) {
+    try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob);
+        
+        const response = await fetch('/api/elevenlabs', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'speak',
+                audioData: await audioBlob.arrayBuffer()
+            }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) throw new Error('Failed to send audio');
+        
+        const data = await response.json();
+        if (data.message) {
+            addMessage(data.message + ' ~', 'assistant');
+        }
+    } catch (error) {
+        console.error('Failed to send audio:', error);
+    }
+}
+
+// Initialize when page loads
+window.onload = async function() {
+    await init();
+    // No need to initialize voice agent here anymore
+};
+
 window.onresize = function() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
