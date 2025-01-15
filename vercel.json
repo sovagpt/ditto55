@@ -1,4 +1,10 @@
 {
+  "version": 2,
+  "functions": {
+    "api/chat.js": {
+      "maxDuration": 60
+    }
+  },
   "env": {
     "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK",
     "ELEVENLABS_API_KEY": "sk_bc4a00c5ce215189db87cb41b48b8ecb5bc727a2ba4cdc79",
