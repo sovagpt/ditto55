@@ -48,7 +48,7 @@ export default async function handler(req, res) {
         console.log('Claude response received successfully');
 
         // Use your custom voice ID
-        const VOICE_ID = 'Cv8xt1cz3nEhNsqHDG7y';
+        const VOICE_ID = 'jBpfuIE2acCO8z3wKNLl';
         
         try {
             const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`;
