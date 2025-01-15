@@ -53,7 +53,10 @@ export default async function handler(req, res) {
         // Only generate voice if there's text to speak
         if (textToSpeak) {
             console.log('Generating voice with ElevenLabs...');
-            const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`, {
+            // Use your custom voice ID
+            const VOICE_ID = 'jBpfuIE2acCO8z3wKNLl';
+            
+            const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'audio/mpeg',
