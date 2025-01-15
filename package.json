@@ -1,28 +1,19 @@
 {
   "name": "dittoai",
   "version": "1.0.0",
-  "description": "DittoAI - Text to 3D Object with Voice AI",
+  "description": "DittoAI - Text to 3D Object",
   "main": "index.js",
   "dependencies": {
-    "mongodb": "^6.3.0",
-    "elevenlabs-node": "^1.2.0",
-    "@elevenlabs/webhook-client": "^1.0.2",
-    "socket.io": "^4.7.4",
-    "socket.io-client": "^4.7.4",
-    "websocket": "^1.0.34",
-    "ws": "^8.16.0"
+    "mongodb": "^6.3.0"
   },
   "scripts": {
-    "start": "node api/index.js",
-    "dev": "vercel dev",
-    "deploy": "vercel deploy --prod"
+    "start": "node api/index.js"
   },
   "keywords": [
     "ditto",
     "3d",
     "ai",
-    "meshy",
-    "elevenlabs"
+    "meshy"
   ],
   "author": "",
   "license": "ISC"
