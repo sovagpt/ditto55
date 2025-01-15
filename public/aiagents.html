@@ -316,19 +316,25 @@ let scene, camera, renderer, dittoModel, mixer, controls;
 async function init() {
     // Initialize Three.js scene
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    
+    // Adjust camera FOV and position
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     renderer = new THREE.WebGLRenderer({ 
         antialias: true,
         alpha: true 
     });
     scene.background = null;
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    
+    // Adjust renderer size to match container
+    const container = document.getElementById('container');
+    renderer.setSize(container.offsetWidth, container.offsetHeight);
     renderer.setClearColor(0x000000, 0);
-    document.getElementById('container').appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
     // Set up controls
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    controls.enabled = false; // Disable orbit controls since we want a fixed view
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
@@ -337,7 +343,10 @@ async function init() {
     directionalLight.position.set(5, 5, 5);
     scene.add(directionalLight);
 
+    // Position camera to frame the character perfectly
     camera.position.z = 5;
+    camera.position.y = 0;
+
     await loadDittoModel();
     animate();
 }
