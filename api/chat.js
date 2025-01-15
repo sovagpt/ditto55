@@ -47,12 +47,12 @@ export default async function handler(req, res) {
         const textToSpeak = claudeData.content[0].text;
         console.log('Claude response received successfully');
 
-        // Use Adam's voice ID instead of the custom one
-        const VOICE_ID = 'pNInz6obpgDQGcFmaJgB'; // Adam's voice ID
+        // Use your custom voice ID
+        const VOICE_ID = 'Cv8xt1cz3nEhNsqHDG7y';
         
         try {
             const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`;
-            console.log('Calling ElevenLabs with voice ID:', VOICE_ID);
+            console.log('Calling ElevenLabs with custom voice ID:', VOICE_ID);
             
             const voiceResponse = await fetch(elevenLabsUrl, {
                 method: 'POST',
@@ -66,7 +66,9 @@ export default async function handler(req, res) {
                     model_id: 'eleven_monolingual_v1',
                     voice_settings: {
                         stability: 0.5,
-                        similarity_boost: 0.75
+                        similarity_boost: 0.75,
+                        style: 0.66,
+                        use_speaker_boost: true
                     }
                 })
             });
