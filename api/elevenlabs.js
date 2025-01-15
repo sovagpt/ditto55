@@ -1,13 +1,20 @@
-const { Client } = require('@11labs/sdk');
+const ElevenLabs = require('elevenlabs-node');
 
-// Initialize ElevenLabs client
-const client = new Client(process.env.ELEVENLABS_API_KEY);
+const voice = new ElevenLabs({
+    apiKey: process.env.ELEVENLABS_API_KEY // Will use: sk_7b37cf7505be75e6ebda6162402712ce525850619ab92183
+});
+
+const AGENT_ID = process.env.ELEVENLABS_AGENT_ID; // Will use: e5emiKAgojCavnScP8md
 let activeConversation = null;
 
 async function handleAudioStream(audioStream) {
     if (!activeConversation) return;
     try {
-        const response = await activeConversation.sendAudio(audioStream);
+        // Using specific agent ID for transcription and response
+        const response = await voice.transcribe(audioStream, {
+            agentId: AGENT_ID,
+            optimize_streaming_latency: 3
+        });
         return response;
     } catch (error) {
         console.error('Error processing audio:', error);
@@ -25,38 +32,30 @@ module.exports = async function (req, res) {
 
         switch (action) {
             case 'start':
-                if (activeConversation) {
-                    await activeConversation.stop();
+                try {
+                    // Initialize conversation with specific agent
+                    activeConversation = await voice.startAgentConversation(AGENT_ID);
+                    return res.status(200).json({ 
+                        status: 'started',
+                        message: 'Voice conversation started successfully',
+                        agentId: AGENT_ID
+                    });
+                } catch (error) {
+                    console.error('Failed to start conversation:', error);
+                    return res.status(500).json({ 
+                        error: 'Failed to start conversation',
+                        details: error.message 
+                    });
                 }
-
-                activeConversation = await client.startConversation({
-                    agentId: process.env.ELEVENLABS_AGENT_ID,
-                    createParams: {
-                        displayName: "DittoAI",
-                        description: "A friendly AI assistant specializing in 3D modeling",
-                        initialMessage: "Hello! I'm DittoAI. How can I help you today?",
-                    },
-                    onMessage: async (message) => {
-                        // Handle incoming messages from the AI
-                        console.log('AI Response:', message);
-                        // You can implement WebSocket here to send messages to the client
-                        return message;
-                    },
-                    onError: (error) => {
-                        console.error('Conversation error:', error);
-                        throw error;
-                    }
-                });
-
-                return res.status(200).json({ 
-                    status: 'started',
-                    message: 'Voice conversation started successfully' 
-                });
 
             case 'stop':
                 if (activeConversation) {
-                    await activeConversation.stop();
-                    activeConversation = null;
+                    try {
+                        await voice.endAgentConversation(AGENT_ID);
+                        activeConversation = null;
+                    } catch (error) {
+                        console.error('Error ending conversation:', error);
+                    }
                 }
                 return res.status(200).json({ 
                     status: 'stopped',
@@ -72,11 +71,26 @@ module.exports = async function (req, res) {
                 }
                 
                 const response = await handleAudioStream(audioData);
+                
+                // Process response and generate voice reply
+                if (response.text) {
+                    const voiceResponse = await voice.generateSpeech(response.text, {
+                        agentId: AGENT_ID,
+                        optimize_streaming_latency: 3
+                    });
+                    
+                    return res.status(200).json({
+                        text: response.text,
+                        audio: voiceResponse,
+                        message: response.text + ' ~'
+                    });
+                }
                 return res.status(200).json(response);
 
             case 'status':
                 return res.status(200).json({ 
-                    status: activeConversation ? 'active' : 'inactive' 
+                    status: activeConversation ? 'active' : 'inactive',
+                    agentId: AGENT_ID 
                 });
 
             default:
