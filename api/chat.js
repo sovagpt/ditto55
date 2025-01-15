@@ -16,8 +16,8 @@ export default async function handler(req, res) {
 
     try {
         const { message, systemPrompt } = req.body;
+        console.log('Processing request...');
 
-        // Get Claude's response
         const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
@@ -44,12 +44,15 @@ export default async function handler(req, res) {
 
         const claudeData = await claudeResponse.json();
         const fullText = claudeData.content[0].text;
+        console.log('Claude response received');
         
         // Extract text without codeblocks for voice
         const textToSpeak = fullText.split(/```[\s\S]*?```/).join(' ').trim();
+        console.log('Text to speak:', textToSpeak);
 
         // Only generate voice if there's text to speak
         if (textToSpeak) {
+            console.log('Generating voice with ElevenLabs...');
             const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`, {
                 method: 'POST',
                 headers: {
@@ -72,22 +75,22 @@ export default async function handler(req, res) {
             if (!voiceResponse.ok) {
                 const voiceErrorText = await voiceResponse.text();
                 console.error('ElevenLabs API error:', voiceErrorText);
-                // If voice fails, still return the text response
                 return res.status(200).json(claudeData);
             }
 
+            console.log('Voice generated successfully');
             const audioBuffer = await voiceResponse.arrayBuffer();
             const audioBase64 = Buffer.from(audioBuffer).toString('base64');
+            console.log('Audio data length:', audioBase64.length);
 
-            // Send both text and audio response
             return res.status(200).json({
                 ...claudeData,
                 audio: audioBase64
             });
+        } else {
+            console.log('No text to speak, returning text-only response');
+            return res.status(200).json(claudeData);
         }
-
-        // Return response without audio if no text to speak or voice generation failed
-        return res.status(200).json(claudeData);
     } catch (error) {
         console.error('Server error:', error);
         res.status(500).json({ 
