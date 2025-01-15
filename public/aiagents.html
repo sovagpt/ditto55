@@ -475,6 +475,7 @@ async function handleAIResponse(message) {
         });
 
         const data = await response.json();
+        console.log('Response received:', { hasAudio: !!data.audio });
 
         if (!response.ok) {
             console.error('API Error:', data);
@@ -487,21 +488,21 @@ async function handleAIResponse(message) {
             const fullText = data.content[0].text;
             addMessage(fullText + ' ~', 'assistant');
             
-            // Extract text without codeblocks for voice
-            const textToSpeak = extractTextWithoutCodeblocks(fullText);
-            
-            // Only send to ElevenLabs if there's text to speak
-            if (textToSpeak) {
+            if (data.audio) {
+                console.log('Audio data received, attempting playback');
+                const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`);
+                
+                audio.addEventListener('play', () => console.log('Audio started playing'));
+                audio.addEventListener('error', (e) => console.error('Audio playback error:', e));
+                audio.addEventListener('ended', () => console.log('Audio finished playing'));
+                
                 try {
-                    console.log('Sending to ElevenLabs:', textToSpeak);
-                    // Your existing ElevenLabs API call with textToSpeak
-                    if (data.audio) {
-                        const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`);
-                        await audio.play();
-                    }
+                    await audio.play();
                 } catch (audioError) {
                     console.error('Audio playback error:', audioError);
                 }
+            } else {
+                console.log('No audio data received from API');
             }
         } else {
             throw new Error('Invalid response format');
