@@ -16,7 +16,6 @@ export default async function handler(req, res) {
 
     try {
         const { message, systemPrompt } = req.body;
-        console.log('Starting request processing');
 
         // Get Claude's response
         const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -40,21 +39,18 @@ export default async function handler(req, res) {
         });
 
         if (!claudeResponse.ok) {
-            throw new Error(`Claude API error: ${await claudeResponse.text()}`);
+            throw new Error(await claudeResponse.text());
         }
 
         const claudeData = await claudeResponse.json();
-        const textToSpeak = claudeData.content[0].text;
-        console.log('Claude response received successfully');
-
-        // Use your custom voice ID
-        const VOICE_ID = 'jBpfuIE2acCO8z3wKNLl';
+        const fullText = claudeData.content[0].text;
         
-        try {
-            const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`;
-            console.log('Calling ElevenLabs with custom voice ID:', VOICE_ID);
-            
-            const voiceResponse = await fetch(elevenLabsUrl, {
+        // Extract text without codeblocks for voice
+        const textToSpeak = fullText.split(/```[\s\S]*?```/).join(' ').trim();
+
+        // Only generate voice if there's text to speak
+        if (textToSpeak) {
+            const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'audio/mpeg',
@@ -74,23 +70,24 @@ export default async function handler(req, res) {
             });
 
             if (!voiceResponse.ok) {
-                const errorText = await voiceResponse.text();
-                throw new Error(`ElevenLabs API error: ${errorText}`);
+                const voiceErrorText = await voiceResponse.text();
+                console.error('ElevenLabs API error:', voiceErrorText);
+                // If voice fails, still return the text response
+                return res.status(200).json(claudeData);
             }
 
             const audioBuffer = await voiceResponse.arrayBuffer();
             const audioBase64 = Buffer.from(audioBuffer).toString('base64');
-            console.log('Audio generated successfully, length:', audioBase64.length);
 
+            // Send both text and audio response
             return res.status(200).json({
                 ...claudeData,
                 audio: audioBase64
             });
-        } catch (voiceError) {
-            console.error('Voice generation error:', voiceError);
-            // Return text-only response if voice fails
-            return res.status(200).json(claudeData);
         }
+
+        // Return response without audio if no text to speak or voice generation failed
+        return res.status(200).json(claudeData);
     } catch (error) {
         console.error('Server error:', error);
         res.status(500).json({ 
