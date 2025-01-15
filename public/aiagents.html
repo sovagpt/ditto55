@@ -311,7 +311,7 @@ lets write some rust code nya
 Always speak naturally as if having a casual conversation with no punctuation or special characters nya`;
 
 // Three.js scene setup and management
-let scene, camera, renderer, dittoModel, mixer, controls;
+let scene, camera, renderer, animeModel, animeMixer, dittoModel, mixer, controls;
 
 async function init() {
     // Initialize Three.js scene
@@ -340,13 +340,14 @@ async function init() {
     camera.position.z = 5;
     await loadDittoModel();
     animate();
+    setTimeout(transitionToAnimeGirl, 2000);
 }
 
 // Load the initial Ditto model
 async function loadDittoModel() {
     const loader = new THREE.GLTFLoader();
     return new Promise((resolve) => {
-        loader.load('https://raw.githubusercontent.com/cheddariniii/hamster/main/chibi_idle.glb', (gltf) => {
+        loader.load('https://raw.githubusercontent.com/cheddariniii/ditto/main/ditto_dancing_pokemon.glb', (gltf) => {
             dittoModel = gltf.scene;
             scene.add(dittoModel);
 
@@ -356,15 +357,15 @@ async function loadDittoModel() {
                 action.play();
             }
 
-            // Increased scale
-            dittoModel.scale.set(8.5, 8.5, 8.5);
+            dittoModel.scale.set(1, 1, 1);
+            dittoModel.position.set(-0.2, -1, 0);
             
-            // Position adjustments:
-            // Brought her even closer
-            dittoModel.position.set(0, -3, -12);
-            
-            // Keep same rotation
-            dittoModel.rotation.y = Math.PI * 2.5;
+            dittoModel.traverse((child) => {
+                if (child.isMesh) {
+                    child.material.transparent = true;
+                    child.material.opacity = 1;
+                }
+            });
 
             resolve();
         });
@@ -375,6 +376,7 @@ async function loadDittoModel() {
 function animate() {
     requestAnimationFrame(animate);
     if (mixer) mixer.update(0.016);
+    if (animeMixer) animeMixer.update(0.016);
     if (controls) controls.update();
     renderer.render(scene, camera);
 }
@@ -457,6 +459,73 @@ async function handleAIResponse(message) {
             : `Sorry, I encountered an error: ${error.message} ~`;
         addMessage(errorMessage, 'assistant');
     }
+}
+
+async function loadAnimeGirl() {
+    const loader = new THREE.GLTFLoader();
+    return new Promise((resolve) => {
+        loader.load('https://raw.githubusercontent.com/cheddariniii/hamster/main/chibi_idle.glb', (gltf) => {
+            animeModel = gltf.scene;
+            scene.add(animeModel);
+
+            if (gltf.animations && gltf.animations.length) {
+                animeMixer = new THREE.AnimationMixer(animeModel);
+                const action = animeMixer.clipAction(gltf.animations[0]);
+                action.play();
+            }
+
+            animeModel.scale.set(8.5, 8.5, 8.5);
+            animeModel.position.set(0, -3, -12);
+            animeModel.rotation.y = Math.PI * 2.5;
+            
+            animeModel.traverse((child) => {
+                if (child.isMesh) {
+                    child.material.transparent = true;
+                    child.material.opacity = 0;
+                }
+            });
+
+            resolve();
+        });
+    });
+}
+
+async function transitionToAnimeGirl() {
+    if (!animeModel) {
+        await loadAnimeGirl();
+    }
+
+    gsap.to(dittoModel.scale, {
+        x: 0.1,
+        y: 0.1,
+        z: 0.1,
+        duration: 1.5,
+        ease: "power2.inOut"
+    });
+
+    dittoModel.traverse((child) => {
+        if (child.isMesh) {
+            gsap.to(child.material, {
+                opacity: 0,
+                duration: 1.5,
+                ease: "power2.inOut"
+            });
+        }
+    });
+
+    setTimeout(() => {
+        scene.remove(dittoModel);
+        
+        animeModel.traverse((child) => {
+            if (child.isMesh) {
+                gsap.to(child.material, {
+                    opacity: 1,
+                    duration: 1.5,
+                    ease: "power2.inOut"
+                });
+            }
+        });
+    }, 1500);
 }
 
 // Add messages to chat
