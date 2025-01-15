@@ -391,6 +391,7 @@ async function handleAIResponse(message) {
         loadingMessage.textContent = 'Thinking...';
         messagesContainer.appendChild(loadingMessage);
 
+        console.log('Sending request to API...');
         const response = await fetch('/api/chat', {
             method: 'POST',
             headers: {
@@ -403,6 +404,10 @@ async function handleAIResponse(message) {
         });
 
         const data = await response.json();
+        console.log('Received response:', { 
+            hasAudio: !!data.audio,
+            audioLength: data.audio ? data.audio.length : 0
+        });
 
         if (!response.ok) {
             console.error('API Error:', data);
@@ -417,12 +422,20 @@ async function handleAIResponse(message) {
             // Play audio response if available
             if (data.audio) {
                 try {
+                    console.log('Attempting to play audio...');
                     const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`);
+                    
+                    // Add event listeners for debugging
+                    audio.addEventListener('play', () => console.log('Audio started playing'));
+                    audio.addEventListener('error', (e) => console.error('Audio error:', e));
+                    audio.addEventListener('ended', () => console.log('Audio finished playing'));
+                    
                     await audio.play();
                 } catch (audioError) {
                     console.error('Audio playback error:', audioError);
-                    // Continue even if audio fails
                 }
+            } else {
+                console.log('No audio data received');
             }
         } else {
             throw new Error('Invalid response format');
