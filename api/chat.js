@@ -16,9 +16,9 @@ export default async function handler(req, res) {
 
     try {
         const { message, systemPrompt } = req.body;
-        console.log('Processing request...');
 
-        const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+        // Set a timeout for the Claude API call
+        const claudePromise = fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -38,67 +38,87 @@ export default async function handler(req, res) {
             })
         });
 
+        // Add timeout to Claude request
+        const claudeResponse = await Promise.race([
+            claudePromise,
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Claude API timeout')), 25000)
+            )
+        ]);
+
         if (!claudeResponse.ok) {
             throw new Error(await claudeResponse.text());
         }
 
         const claudeData = await claudeResponse.json();
         const fullText = claudeData.content[0].text;
-        console.log('Claude response received');
         
         // Extract text without codeblocks for voice
         const textToSpeak = fullText.split(/```[\s\S]*?```/).join(' ').trim();
-        console.log('Text to speak:', textToSpeak);
 
         // Only generate voice if there's text to speak
         if (textToSpeak) {
-            console.log('Generating voice with ElevenLabs...');
-            // Use your custom voice ID
-            const VOICE_ID = 'jBpfuIE2acCO8z3wKNLl';
-            
-            const voiceResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'audio/mpeg',
-                    'Content-Type': 'application/json',
-                    'xi-api-key': process.env.ELEVENLABS_API_KEY
-                },
-                body: JSON.stringify({
-                    text: textToSpeak,
-                    model_id: 'eleven_monolingual_v1',
-                    voice_settings: {
-                        stability: 0.5,
-                        similarity_boost: 0.75,
-                        style: 0.66,
-                        use_speaker_boost: true
-                    }
-                })
-            });
+            try {
+                // Use your custom voice ID
+                const VOICE_ID = 'jBpfuIE2acCO8z3wKNLl';
+                
+                // Set a timeout for the ElevenLabs API call
+                const voicePromise = fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'audio/mpeg',
+                        'Content-Type': 'application/json',
+                        'xi-api-key': process.env.ELEVENLABS_API_KEY
+                    },
+                    body: JSON.stringify({
+                        text: textToSpeak,
+                        model_id: 'eleven_monolingual_v1',
+                        voice_settings: {
+                            stability: 0.5,
+                            similarity_boost: 0.75,
+                            style: 0.66,
+                            use_speaker_boost: true
+                        }
+                    })
+                });
 
-            if (!voiceResponse.ok) {
-                const voiceErrorText = await voiceResponse.text();
-                console.error('ElevenLabs API error:', voiceErrorText);
+                // Add timeout to ElevenLabs request
+                const voiceResponse = await Promise.race([
+                    voicePromise,
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('ElevenLabs API timeout')), 15000)
+                    )
+                ]);
+
+                if (!voiceResponse.ok) {
+                    // If voice generation fails, return text-only response
+                    console.error('Voice generation failed, returning text-only response');
+                    return res.status(200).json(claudeData);
+                }
+
+                const audioBuffer = await voiceResponse.arrayBuffer();
+                const audioBase64 = Buffer.from(audioBuffer).toString('base64');
+
+                return res.status(200).json({
+                    ...claudeData,
+                    audio: audioBase64
+                });
+            } catch (voiceError) {
+                // If voice generation times out or fails, return text-only response
+                console.error('Voice generation error:', voiceError);
                 return res.status(200).json(claudeData);
             }
-
-            console.log('Voice generated successfully');
-            const audioBuffer = await voiceResponse.arrayBuffer();
-            const audioBase64 = Buffer.from(audioBuffer).toString('base64');
-            console.log('Audio data length:', audioBase64.length);
-
-            return res.status(200).json({
-                ...claudeData,
-                audio: audioBase64
-            });
-        } else {
-            console.log('No text to speak, returning text-only response');
-            return res.status(200).json(claudeData);
         }
+
+        // Return text-only response if no text to speak
+        return res.status(200).json(claudeData);
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ 
+        
+        // Return a proper JSON response even for timeouts
+        res.status(error.message.includes('timeout') ? 504 : 500).json({
             error: error.message,
-            stack: error.stack 
+            type: error.message.includes('timeout') ? 'timeout' : 'server_error'
         });
     }
 }
