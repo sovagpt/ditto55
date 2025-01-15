@@ -31,6 +31,28 @@
             align-items: center;
         }
 
+        .mic-btn {
+    background: #FF5350;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0 20px;
+    font-family: 'Press Start 2P', system-ui;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.mic-btn.recording {
+    background: #ff0000;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
         .header {
             background: rgba(255, 255, 255, 0.2);
             display: flex;
@@ -263,8 +285,8 @@
             <div id="loading">Transforming...</div>
             <div id="status"></div>
             <div class="disclaimer">
-                Please allow up to 2 minutes for 3D object generation<br><br>
-                Chat to DittoAI agent while you wait or check out community creations
+                AI Agents are still experimental<br><br>
+                Errors & bugs will be hotfixed daily
             </div>
         </div>
     
@@ -279,6 +301,7 @@
             <div class="input-container">
                 <input type="text" class="chat-input" placeholder="Chat with DittoAI..." onkeydown="handleChatInput(event)">
                 <button class="send-btn">Send</button>
+                <button class="mic-btn">🎤</button>
             </div>
         </div>
     </div>
@@ -461,6 +484,70 @@ async function handleAIResponse(message) {
     }
 }
 
+let recognition = null;
+let isRecording = false;
+
+function setupSpeechRecognition() {
+    if ('webkitSpeechRecognition' in window) {
+        recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = function() {
+            isRecording = true;
+            const micBtn = document.querySelector('.mic-btn');
+            micBtn.classList.add('recording');
+            document.querySelector('.chat-input').placeholder = 'Listening...';
+        };
+
+        recognition.onend = function() {
+            isRecording = false;
+            const micBtn = document.querySelector('.mic-btn');
+            micBtn.classList.remove('recording');
+            document.querySelector('.chat-input').placeholder = 'Chat with DittoAI...';
+        };
+
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            document.querySelector('.chat-input').value = transcript;
+            handleVoiceInput(transcript);
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
+            isRecording = false;
+            document.querySelector('.mic-btn').classList.remove('recording');
+            document.querySelector('.chat-input').placeholder = 'Chat with DittoAI...';
+        };
+    }
+}
+
+function toggleRecording() {
+    if (!recognition) {
+        setupSpeechRecognition();
+    }
+
+    if (!recognition) {
+        console.error('Speech recognition not supported in this browser');
+        return;
+    }
+
+    if (isRecording) {
+        recognition.stop();
+    } else {
+        recognition.start();
+    }
+}
+
+async function handleVoiceInput(transcript) {
+    if (transcript.trim()) {
+        addMessage(transcript, 'user');
+        await handleAIResponse(transcript);
+    }
+}
+
+
 async function loadAnimeGirl() {
     const loader = new THREE.GLTFLoader();
     return new Promise((resolve) => {
@@ -566,7 +653,7 @@ window.onresize = function() {
 
 // Add event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Send button handler
+    // Existing send button handler
     document.querySelector('.send-btn')?.addEventListener('click', async () => {
         const input = document.querySelector('.chat-input');
         const message = input.value.trim();
@@ -575,6 +662,11 @@ document.addEventListener('DOMContentLoaded', () => {
             input.value = '';
             await handleAIResponse(message);
         }
+    });
+
+    // Add microphone button handler
+    document.querySelector('.mic-btn')?.addEventListener('click', () => {
+        toggleRecording();
     });
 });
     </script>
