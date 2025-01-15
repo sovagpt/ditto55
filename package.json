@@ -5,11 +5,17 @@
   "main": "index.js",
   "dependencies": {
     "mongodb": "^6.3.0",
+    "@11labs/sdk": "latest",
     "@11labs/react": "latest",
-    "@11labs/sdk": "latest"
+    "websocket": "^1.0.34",
+    "ws": "^8.16.0",
+    "socket.io": "^4.7.4",
+    "socket.io-client": "^4.7.4"
   },
   "scripts": {
-    "start": "node api/index.js"
+    "start": "node api/index.js",
+    "dev": "vercel dev",
+    "deploy": "vercel deploy --prod"
   },
   "keywords": [
     "ditto",
