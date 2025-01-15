@@ -16,7 +16,7 @@ export default async function handler(req, res) {
 
     try {
         const { message, systemPrompt } = req.body;
-        console.log('Processing request with ElevenLabs integration');
+        console.log('Starting request processing');
 
         // Get Claude's response
         const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
@@ -40,52 +40,68 @@ export default async function handler(req, res) {
         });
 
         if (!claudeResponse.ok) {
-            const errorText = await claudeResponse.text();
-            console.error('Claude API error:', errorText);
-            throw new Error(`Claude API error: ${errorText}`);
+            throw new Error(`Claude API error: ${await claudeResponse.text()}`);
         }
 
         const claudeData = await claudeResponse.json();
         const textToSpeak = claudeData.content[0].text;
-        console.log('Got Claude response, length:', textToSpeak.length);
+        console.log('Claude response received successfully');
 
-        // Generate voice using ElevenLabs
-        console.log('Calling ElevenLabs API...');
-        console.log('Voice ID:', process.env.ELEVENLABS_VOICE_ID);
-        const voiceResponse = await fetch('https://api.elevenlabs.io/v1/text-to-speech/' + process.env.ELEVENLABS_VOICE_ID, {
-            method: 'POST',
-            headers: {
-                'Accept': 'audio/mpeg',
-                'Content-Type': 'application/json',
-                'xi-api-key': process.env.ELEVENLABS_API_KEY
-            },
-            body: JSON.stringify({
-                text: textToSpeak,
-                model_id: 'eleven_monolingual_v1',
-                voice_settings: {
-                    stability: 0.5,
-                    similarity_boost: 0.75
-                }
-            })
+        // Log ElevenLabs configuration
+        console.log('ElevenLabs Config:', {
+            voiceId: process.env.ELEVENLABS_VOICE_ID,
+            apiKeyLength: process.env.ELEVENLABS_API_KEY?.length || 0
         });
 
-        if (!voiceResponse.ok) {
-            const voiceErrorText = await voiceResponse.text();
-            console.error('ElevenLabs API error:', voiceErrorText);
-            // If voice fails, still return the text response
+        // Try ElevenLabs API
+        try {
+            const elevenLabsUrl = `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}`;
+            console.log('Calling ElevenLabs:', elevenLabsUrl);
+            
+            const voiceResponse = await fetch(elevenLabsUrl, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'audio/mpeg',
+                    'Content-Type': 'application/json',
+                    'xi-api-key': process.env.ELEVENLABS_API_KEY
+                },
+                body: JSON.stringify({
+                    text: textToSpeak,
+                    model_id: 'eleven_monolingual_v1',
+                    voice_settings: {
+                        stability: 0.5,
+                        similarity_boost: 0.75
+                    }
+                })
+            });
+
+            console.log('ElevenLabs response status:', voiceResponse.status);
+
+            if (!voiceResponse.ok) {
+                const errorText = await voiceResponse.text();
+                throw new Error(`ElevenLabs API error: ${errorText}`);
+            }
+
+            const audioBuffer = await voiceResponse.arrayBuffer();
+            const audioBase64 = Buffer.from(audioBuffer).toString('base64');
+            console.log('Audio generated successfully, length:', audioBase64.length);
+
+            return res.status(200).json({
+                ...claudeData,
+                audio: audioBase64
+            });
+        } catch (voiceError) {
+            console.error('Voice generation error:', voiceError);
+            // Log the full error details
+            console.error({
+                message: voiceError.message,
+                stack: voiceError.stack,
+                status: voiceError.status
+            });
+            
+            // Return text-only response if voice fails
             return res.status(200).json(claudeData);
         }
-
-        console.log('Got ElevenLabs response, converting to base64...');
-        const audioBuffer = await voiceResponse.arrayBuffer();
-        const audioBase64 = Buffer.from(audioBuffer).toString('base64');
-        console.log('Audio base64 length:', audioBase64.length);
-
-        // Send both text and audio response
-        return res.status(200).json({
-            ...claudeData,
-            audio: audioBase64
-        });
     } catch (error) {
         console.error('Server error:', error);
         res.status(500).json({ 
