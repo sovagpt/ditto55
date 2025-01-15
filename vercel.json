@@ -1,5 +1,7 @@
 {
   "env": {
-    "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK"
+    "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK",
+    "ELEVENLABS_API_KEY": "your-elevenlabs-api-key",
+    "ELEVENLABS_AGENT_ID": "your-agent-id"
   }
 }

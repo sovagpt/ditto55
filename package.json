@@ -1,10 +1,12 @@
 {
   "name": "dittoai",
   "version": "1.0.0",
-  "description": "DittoAI - Text to 3D Object",
+  "description": "DittoAI - Text to 3D Object with Voice AI",
   "main": "index.js",
   "dependencies": {
-    "mongodb": "^6.3.0"
+    "mongodb": "^6.3.0",
+    "@11labs/react": "latest",
+    "@11labs/sdk": "latest"
   },
   "scripts": {
     "start": "node api/index.js"
@@ -13,7 +15,8 @@
     "ditto",
     "3d",
     "ai",
-    "meshy"
+    "meshy",
+    "elevenlabs"
   ],
   "author": "",
   "license": "ISC"
