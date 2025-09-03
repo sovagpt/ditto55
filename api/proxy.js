@@ -28,9 +28,9 @@ export default async function handler(req, res) {
 
     // ALWAYS add the Meshy API key for Meshy API calls from environment variable
     if (url.includes('api.meshy.ai')) {
-        fetchOptions.headers.authorization = `Bearer ${process.env.MESHY_API_KEY}`;
-        console.log('Using Meshy API key from env:', process.env.MESHY_API_KEY ? 'Key found' : 'Key missing');
-    }
+    fetchOptions.headers.authorization = `Bearer ${process.env.MESHY_API_KEY}`;
+    console.log('ACTUAL API KEY BEING USED:', process.env.MESHY_API_KEY); // Add this debug line
+}
 
     // Handle POST request body
     if (req.method === 'POST') {
@@ -96,3 +96,4 @@ export default async function handler(req, res) {
         });
     }
 }
+
