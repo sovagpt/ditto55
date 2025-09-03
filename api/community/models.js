@@ -1,11 +1,27 @@
 const { MongoClient } = require('mongodb');
 
 let cachedDb = null;
+let cachedClient = null;
 
 async function connectToDatabase(uri) {
-    if (cachedDb) return cachedDb;
-    const client = await MongoClient.connect(uri);
-    const db = client.db('dittoai');
+    if (cachedDb && cachedClient) {
+        return cachedDb;
+    }
+    
+    const client = new MongoClient(uri, {
+        useUnifiedTopology: true,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        maxPoolSize: 10,
+        minPoolSize: 5,
+        maxIdleTimeMS: 30000,
+        bufferMaxEntries: 0,
+        tlsAllowInvalidCertificates: false,
+        tlsAllowInvalidHostnames: false,
+    });
+    
+    cachedClient = await client.connect();
+    const db = cachedClient.db('dittoai');
     cachedDb = db;
     return db;
 }
@@ -21,15 +37,22 @@ export default async function handler(req, res) {
         return;
     }
 
+    if (req.method !== 'GET') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+    }
+
     try {
         const db = await connectToDatabase(process.env.MONGODB_URI);
         const models = await db.collection('models')
             .find()
             .sort({ createdAt: -1 })
+            .limit(50)
             .toArray();
+            
         res.status(200).json(models);
     } catch (error) {
         console.error('API Error:', error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Database connection failed', details: error.message });
     }
 }
