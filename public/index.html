@@ -2212,13 +2212,14 @@ Response style:
             
             console.log(`Preview ${index + 1} request:`, requestBody);
             
-            const previewResponse = await fetch(`${API_BASE}/proxy?url=${encodeURIComponent('https://api.meshy.ai/openapi/v2/text-to-3d')}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(requestBody)
-            });
+            const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+        // NO Authorization header here - proxy handles it
+    },
+    body: JSON.stringify({...})
+});
 
             console.log(`Preview ${index + 1} response status:`, previewResponse.status);
             
@@ -2766,6 +2767,7 @@ Response style:
     </div>
 </body>
 </html>
+
 
 
 
