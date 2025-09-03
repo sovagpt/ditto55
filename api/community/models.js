@@ -9,16 +9,16 @@ async function connectToDatabase(uri) {
     }
     
     const client = new MongoClient(uri, {
-        useUnifiedTopology: true,
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-        maxPoolSize: 10,
-        minPoolSize: 5,
-        maxIdleTimeMS: 30000,
-        bufferMaxEntries: 0,
-        tlsAllowInvalidCertificates: false,
-        tlsAllowInvalidHostnames: false,
-    });
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    minPoolSize: 5,
+    maxIdleTimeMS: 30000,
+    // Remove this line: bufferMaxEntries: 0,
+    tlsAllowInvalidCertificates: false,
+    tlsAllowInvalidHostnames: false,
+});
     
     cachedClient = await client.connect();
     const db = cachedClient.db('dittoai');
@@ -56,3 +56,4 @@ module.exports = async function handler(req, res) {
         res.status(500).json({ error: 'Database connection failed', details: error.message });
     }
 };
+
