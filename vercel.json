@@ -10,8 +10,9 @@
     { "src": "/community", "dest": "/community.html" }
   ],
   "env": {
-    "MESHY_API_KEY": "msy_hGam416gE4MJsrnVVCpgDhQ3rllTWItCBJwK",
+    "MESHY_API_KEY": "msy_5D0PHOBs12dfHfcDRhKMN3tV6ckq8ZDPDYCs",
     "ELEVENLABS_API_KEY": "sk_bc4a00c5ce215189db87cb41b48b8ecb5bc727a2ba4cdc79",
     "ELEVENLABS_VOICE_ID": "e5emiKAgojCavnScP8md"
   }
+
 }
