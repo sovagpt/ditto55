@@ -1873,38 +1873,38 @@ Response style:
         }
 
         async function loadDittoModel() {
-    const loader = new THREE.GLTFLoader();
-    const proxyUrl = `${API_BASE}/proxy?url=${encodeURIComponent('https://raw.githubusercontent.com/sovagpt/ditto55/master/ditto_dancing_pokemon.glb')}`;
-    
-    return new Promise((resolve, reject) => {
-        loader.load(
-            proxyUrl,
-            (gltf) => {
-                console.log('Model loaded successfully:', gltf);
-                dittoModel = gltf.scene;
-                scene.add(dittoModel);
-                
-                if (gltf.animations && gltf.animations.length) {
-                    mixer = new THREE.AnimationMixer(dittoModel);
-                    const action = mixer.clipAction(gltf.animations[0]);
-                    action.setDuration(3);
-                    action.play();
-                }
-                
-                dittoModel.scale.set(1, 1, 1);
-                dittoModel.position.set(-0.2, -1, 0);
-                resolve();
-            },
-            (progress) => {
-                console.log('Loading progress:', progress);
-            },
-            (error) => {
-                console.error('Model loading failed:', error);
-                reject(error);
-            }
-        );
-    });
-}
+            const loader = new THREE.GLTFLoader();
+            const proxyUrl = `${API_BASE}/proxy?url=${encodeURIComponent('https://raw.githubusercontent.com/sovagpt/ditto55/master/ditto_dancing_pokemon.glb')}`;
+            
+            return new Promise((resolve, reject) => {
+                loader.load(
+                    proxyUrl,
+                    (gltf) => {
+                        console.log('Model loaded successfully:', gltf);
+                        dittoModel = gltf.scene;
+                        scene.add(dittoModel);
+                        
+                        if (gltf.animations && gltf.animations.length) {
+                            mixer = new THREE.AnimationMixer(dittoModel);
+                            const action = mixer.clipAction(gltf.animations[0]);
+                            action.setDuration(3);
+                            action.play();
+                        }
+                        
+                        dittoModel.scale.set(1, 1, 1);
+                        dittoModel.position.set(-0.2, -1, 0);
+                        resolve();
+                    },
+                    (progress) => {
+                        console.log('Loading progress:', progress);
+                    },
+                    (error) => {
+                        console.error('Model loading failed:', error);
+                        reject(error);
+                    }
+                );
+            });
+        }
 
         async function handleChatInput(event) {
             if (event.key === 'Enter') {
@@ -1919,103 +1919,157 @@ Response style:
         }
 
         async function handleAIResponse(message) {
-    try {
-        const messagesContainer = document.querySelector('.chat-messages');
-        const loadingMessage = document.createElement('div');
-        loadingMessage.classList.add('message', 'assistant-message');
-        loadingMessage.textContent = 'Thinking...';
-        messagesContainer.appendChild(loadingMessage);
+            try {
+                const messagesContainer = document.querySelector('.chat-messages');
+                const loadingMessage = document.createElement('div');
+                loadingMessage.classList.add('message', 'assistant-message');
+                loadingMessage.textContent = 'Thinking...';
+                messagesContainer.appendChild(loadingMessage);
 
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                message: message,
-                systemPrompt: SYSTEM_PROMPT
-            })
-        });
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        systemPrompt: SYSTEM_PROMPT
+                    })
+                });
 
-        if (!response.ok) {
-            throw new Error('API Error');
-        }
+                if (!response.ok) {
+                    throw new Error('API Error');
+                }
 
-        const data = await response.json();
-        
-        // Remove loading message
-        messagesContainer.removeChild(loadingMessage);
-
-        if (data?.content?.[0]?.text) {
-            addMessage(data.content[0].text + ' ~', 'assistant');
-        } else {
-            throw new Error('Invalid response format');
-        }
-    } catch (error) {
-        console.error('Chat error:', error);
-        addMessage('Sorry, I encountered an error. Please try again. ~', 'assistant');
-    }
-}
-
-async function imageToModel(file) {
-    updateProgress(0);
-    document.getElementById('status').textContent = 'Converting image to 3D...';
-    document.getElementById('status').style.display = 'block';
-    
-    try {
-        // First convert the file to base64
-        const base64String = await new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(file);
-        });
-
-        const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/image-to-3d`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${MESHY_API_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                image_url: base64String,
-                enable_pbr: true,
-                should_remesh: true,
-                should_texture: true,
-                topology: "quad",
-                target_polycount: 30000
-            })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API Error:', errorText);
-            throw new Error('Image conversion failed');
-        }
-
-        const data = await response.json();
-        console.log('Image to 3D response:', data);
-        
-        // Check task status
-        const taskId = data.result;
-        let status;
-        do {
-            const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/image-to-3d/${taskId}`, {
-                headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-            });
-            const statusData = await statusResponse.json();
-            console.log('Status:', statusData);
-            status = statusData.status;
-            document.getElementById('status').textContent = `Converting: ${status}`;
-            updateProgress(status === 'SUCCEEDED' ? 100 : 50);
-            if (status === 'SUCCEEDED') {
-                downloadUrl = statusData.model_urls.glb;
-
-                // Save to community database
-                await saveToDatabase(downloadUrl, `Image to 3D: ${file.name}`);
-
-                const localUrl = await downloadAndCreateBlob(downloadUrl);
+                const data = await response.json();
                 
-                const loader = new THREE.GLTFLoader();
+                // Remove loading message
+                messagesContainer.removeChild(loadingMessage);
+
+                if (data?.content?.[0]?.text) {
+                    addMessage(data.content[0].text + ' ~', 'assistant');
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                addMessage('Sorry, I encountered an error. Please try again. ~', 'assistant');
+            }
+        }
+
+        async function imageToModel(file) {
+            updateProgress(0);
+            document.getElementById('status').textContent = 'Converting image to 3D...';
+            document.getElementById('status').style.display = 'block';
+            
+            try {
+                // First convert the file to base64
+                const base64String = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.readAsDataURL(file);
+                });
+
+                const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/image-to-3d`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        image_url: base64String,
+                        enable_pbr: true,
+                        should_remesh: true,
+                        should_texture: true,
+                        topology: "quad",
+                        target_polycount: 30000
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('API Error:', errorText);
+                    throw new Error('Image conversion failed');
+                }
+
+                const data = await response.json();
+                console.log('Image to 3D response:', data);
+                
+                // Check task status
+                const taskId = data.result;
+                let status;
+                do {
+                    const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v1/image-to-3d/${taskId}`);
+                    const statusData = await statusResponse.json();
+                    console.log('Status:', statusData);
+                    status = statusData.status;
+                    document.getElementById('status').textContent = `Converting: ${status}`;
+                    updateProgress(status === 'SUCCEEDED' ? 100 : 50);
+                    if (status === 'SUCCEEDED') {
+                        downloadUrl = statusData.model_urls.glb;
+
+                        // Save to community database
+                        await saveToDatabase(downloadUrl, `Image to 3D: ${file.name}`);
+
+                        const localUrl = await downloadAndCreateBlob(downloadUrl);
+                        
+                        const loader = new THREE.GLTFLoader();
+                        loader.load(localUrl, (gltf) => {
+                            URL.revokeObjectURL(localUrl);
+                            if (currentModel) scene.remove(currentModel);
+                            
+                            const newModel = gltf.scene;
+                            currentModel = newModel;
+                            scene.add(newModel);
+                            newModel.scale.set(0, 0, 0);
+                            
+                            // Add the Ditto disappearing animation
+                            gsap.to(dittoModel.scale, {
+                                x: 0, y: 0, z: 0,
+                                duration: 1,
+                                ease: "power2.in"
+                            });
+
+                            // Then scale up the new model
+                            gsap.to(newModel.scale, {
+                                x: 2, y: 2, z: 2,
+                                duration: 1,
+                                delay: 1,
+                                ease: "power2.out",
+                                onComplete: () => {
+                                    gsap.to(newModel.rotation, {
+                                        y: Math.PI * 2,
+                                        duration: 2,
+                                        ease: "power1.inOut"
+                                    });
+                                    document.querySelector('.animate-btn').style.display = 'block';
+                                    document.querySelector('.download-btn').style.display = 'block';
+                                    document.querySelector('.download-btn').style.pointerEvents = 'auto';
+                                    document.querySelector('.download-btn').style.zIndex = '1001';
+                                }
+                            });
+                        });
+
+                        addMessage('Image to 3D conversion complete! You can now download or animate the model. ~', 'assistant');
+                        return;
+                    }
+                    await new Promise(r => setTimeout(r, 2000));
+                } while (status === 'PENDING' || status === 'IN_PROGRESS');
+
+                throw new Error('Conversion failed or timed out');
+            } catch (error) {
+                console.error('Image to 3D error:', error);
+                document.getElementById('status').textContent = 'Image conversion failed';
+                addMessage('Sorry, the image conversion failed. Please try again. ~', 'assistant');
+            } finally {
+                document.getElementById('status').style.display = 'none';
+            }
+        }
+
+        async function loadNewModel(modelUrl, shouldAnimate = false) {
+            const localUrl = await downloadAndCreateBlob(modelUrl);
+            const loader = new THREE.GLTFLoader();
+            
+            return new Promise((resolve, reject) => {
                 loader.load(localUrl, (gltf) => {
                     URL.revokeObjectURL(localUrl);
                     if (currentModel) scene.remove(currentModel);
@@ -2023,97 +2077,24 @@ async function imageToModel(file) {
                     const newModel = gltf.scene;
                     currentModel = newModel;
                     scene.add(newModel);
-                    newModel.scale.set(0, 0, 0);
                     
-                    // Add the Ditto disappearing animation
-                    gsap.to(dittoModel.scale, {
-                        x: 0, y: 0, z: 0,
-                        duration: 1,
-                        ease: "power2.in"
-                    });
-
-                    // Then scale up the new model
-                    gsap.to(newModel.scale, {
-                        x: 2, y: 2, z: 2,
-                        duration: 1,
-                        delay: 1,
-                        ease: "power2.out",
-                        onComplete: () => {
-                            gsap.to(newModel.rotation, {
-                                y: Math.PI * 2,
-                                duration: 2,
-                                ease: "power1.inOut"
-                            });
-                            document.querySelector('.animate-btn').style.display = 'block';
-                            document.querySelector('.download-btn').style.display = 'block';
-                            document.querySelector('.download-btn').style.pointerEvents = 'auto';
-                            document.querySelector('.download-btn').style.zIndex = '1001';
-                        }
-                    });
-                });
-
-                addMessage('Image to 3D conversion complete! You can now download or animate the model. ~', 'assistant');
-                return;
-            }
-            await new Promise(r => setTimeout(r, 2000));
-        } while (status === 'PENDING' || status === 'IN_PROGRESS');
-
-        throw new Error('Conversion failed or timed out');
-    } catch (error) {
-        console.error('Image to 3D error:', error);
-        document.getElementById('status').textContent = 'Image conversion failed';
-        addMessage('Sorry, the image conversion failed. Please try again. ~', 'assistant');
-    } finally {
-        document.getElementById('status').style.display = 'none';
-    }
-}
-
-        async function checkTaskStatus(taskId, operation) {
-            let status;
-            do {
-                const response = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/v1/tasks/${taskId}`, {
-                    headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-                });
-                const data = await response.json();
-                status = data.status;
-                document.getElementById('status').textContent = `${operation}: ${status}`;
-                updateProgress(status === 'SUCCEEDED' ? 100 : 50);
-                await new Promise(r => setTimeout(r, 2000));
-            } while (status === 'PENDING' || status === 'IN_PROGRESS');
-            
-            if (status !== 'SUCCEEDED') throw new Error(`${operation} failed`);
+                    // Handle animation if present
+                    if (shouldAnimate && gltf.animations && gltf.animations.length > 0) {
+                        mixer = new THREE.AnimationMixer(newModel);
+                        const animation = gltf.animations[0];
+                        const action = mixer.clipAction(animation);
+                        action.play();
+                    }
+                    
+                    gsap.fromTo(newModel.scale, 
+                        {x: 0, y: 0, z: 0},
+                        {x: 2, y: 2, z: 2, duration: 1, ease: "power2.out"}
+                    );
+                    
+                    resolve();
+                }, undefined, reject);
+            });
         }
-
-        async function loadNewModel(modelUrl, shouldAnimate = false) {
-    const localUrl = await downloadAndCreateBlob(modelUrl);
-    const loader = new THREE.GLTFLoader();
-    
-    return new Promise((resolve, reject) => {
-        loader.load(localUrl, (gltf) => {
-            URL.revokeObjectURL(localUrl);
-            if (currentModel) scene.remove(currentModel);
-            
-            const newModel = gltf.scene;
-            currentModel = newModel;
-            scene.add(newModel);
-            
-            // Handle animation if present
-            if (shouldAnimate && gltf.animations && gltf.animations.length > 0) {
-                mixer = new THREE.AnimationMixer(newModel);
-                const animation = gltf.animations[0];
-                const action = mixer.clipAction(animation);
-                action.play();
-            }
-            
-            gsap.fromTo(newModel.scale, 
-                {x: 0, y: 0, z: 0},
-                {x: 2, y: 2, z: 2, duration: 1, ease: "power2.out"}
-            );
-            
-            resolve();
-        }, undefined, reject);
-    });
-}
 
         document.getElementById('imageUpload')?.addEventListener('change', (event) => {
             const file = event.target.files[0];
@@ -2121,19 +2102,6 @@ async function imageToModel(file) {
                 imageToModel(file);
             }
         });
-
-        function typewriterEffect(element, text, speed = 20) {
-            let i = 0;
-            element.textContent = '';
-            function type() {
-                if (i < text.length) {
-                    element.textContent += text.charAt(i);
-                    i++;
-                    setTimeout(type, speed);
-                }
-            }
-            type();
-        }
 
         async function downloadAndCreateBlob(url) {
             const proxyUrl = `/api/proxy?url=${encodeURIComponent(url)}`;
@@ -2168,243 +2136,241 @@ async function imageToModel(file) {
         });
 
         function updateProgress(percent) {
-    const bar = document.querySelector('.progress-bar');
-    const fill = document.querySelector('.progress-fill');
-    const percentText = document.querySelector('.progress-percentage');
-    bar.style.display = 'block';
-    fill.style.width = `${percent}%`;
-    percentText.textContent = `${Math.round(percent)}%`;
-}
+            const bar = document.querySelector('.progress-bar');
+            const fill = document.querySelector('.progress-fill');
+            const percentText = document.querySelector('.progress-percentage');
+            bar.style.display = 'block';
+            fill.style.width = `${percent}%`;
+            percentText.textContent = `${Math.round(percent)}%`;
+        }
 
         async function saveToDatabase(modelUrl, prompt) {
-    try {
-        const response = await fetch('/api/community', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                modelUrl,
-                prompt,
-                timestamp: new Date().toISOString()
-            })
-        });
+            try {
+                const response = await fetch('/api/community', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        modelUrl,
+                        prompt,
+                        timestamp: new Date().toISOString()
+                    })
+                });
 
-        if (!response.ok) {
-            throw new Error('Failed to save to database');
+                if (!response.ok) {
+                    throw new Error('Failed to save to database');
+                }
+
+                const data = await response.json();
+                console.log('Saved to database:', data);
+            } catch (error) {
+                console.error('Error saving to database:', error);
+            }
         }
 
-        const data = await response.json();
-        console.log('Saved to database:', data);
-    } catch (error) {
-        console.error('Error saving to database:', error);
-    }
-}
+        let previewTaskIds = [];
+        let selectedPreviewId = null;
 
-let previewTaskIds = [];
-let selectedPreviewId = null;
-
-async function transform(promptText) {
-    if (!dittoModel) return;
-    window.currentPrompt = promptText;
-    
-    const previewModal = document.getElementById('preview-modal');
-    const generateFinalBtn = document.getElementById('generate-final');
-    previewModal.style.display = 'flex';
-    generateFinalBtn.disabled = true;
-    selectedPreviewId = null;
-    previewTaskIds = [];
-
-    // Clear any previous preview canvases
-    document.querySelectorAll('.preview-canvas').forEach(canvas => {
-        canvas.innerHTML = '';
-    });
-    
-    // Reset spinners
-    document.querySelectorAll('.preview-spinner').forEach(spinner => {
-        spinner.style.display = 'flex';
-    });
-
-    addMessage(`Generating previews for: "${promptText}" ~`, 'assistant');
-
-    // Create 4 preview tasks in parallel
-    const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-        // Remove Authorization header - let your proxy handle it
-    },
-    body: JSON.stringify({
-        mode: "preview",
-        prompt: promptText,
-        art_style: "realistic",
-        ai_model: "meshy-5",  // Add this - defaults to meshy-5
-        should_remesh: true,
-        topology: "quad",
-        target_polycount: 30000,
-        symmetry_mode: "auto"  // Add this - defaults to auto
-    })
-});
-
-            if (!previewResponse.ok) throw new Error('Preview creation failed');
+        async function transform(promptText) {
+            if (!dittoModel) return;
+            window.currentPrompt = promptText;
             
-            const previewData = await previewResponse.json();
-            const taskId = previewData.result;
-            previewTaskIds[index] = taskId;
+            const previewModal = document.getElementById('preview-modal');
+            const generateFinalBtn = document.getElementById('generate-final');
+            previewModal.style.display = 'flex';
+            generateFinalBtn.disabled = true;
+            selectedPreviewId = null;
+            previewTaskIds = [];
 
-            // Monitor preview status
-            let previewStatus;
-            do {
-                const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`, {
-                    headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-                });
-                const statusData = await statusResponse.json();
-                previewStatus = statusData.status;
-                
-                if (previewStatus === 'SUCCEEDED' && statusData.model_urls?.glb) {
-                    // Load preview into the corresponding preview canvas
-                    const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
-                    const previewCanvas = previewItem.querySelector('.preview-canvas');
-                    const previewSpinner = previewItem.querySelector('.preview-spinner');
-                    
-                    await loadPreviewModel(statusData.model_urls.glb, previewCanvas);
-                    previewSpinner.style.display = 'none';
-                    previewItem.dataset.taskId = taskId;
-                    
-                    // Make preview item clickable
-                    previewItem.style.cursor = 'pointer';
-                    previewItem.addEventListener('click', () => {
-                        document.querySelectorAll('.preview-item').forEach(i => i.classList.remove('selected'));
-                        previewItem.classList.add('selected');
-                        selectedPreviewId = taskId;
-                        document.getElementById('generate-final').disabled = false;
+            // Clear any previous preview canvases
+            document.querySelectorAll('.preview-canvas').forEach(canvas => {
+                canvas.innerHTML = '';
+            });
+            
+            // Reset spinners
+            document.querySelectorAll('.preview-spinner').forEach(spinner => {
+                spinner.style.display = 'flex';
+            });
+
+            addMessage(`Generating previews for: "${promptText}" ~`, 'assistant');
+
+            // Create 4 preview tasks in parallel
+            const previewPromises = Array(4).fill().map(async (_, index) => {
+                try {
+                    const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            mode: "preview",
+                            prompt: promptText,
+                            art_style: "realistic",
+                            ai_model: "meshy-5",
+                            should_remesh: true,
+                            topology: "quad",
+                            target_polycount: 30000,
+                            symmetry_mode: "auto"
+                        })
                     });
+
+                    if (!previewResponse.ok) throw new Error('Preview creation failed');
                     
-                    return taskId;
+                    const previewData = await previewResponse.json();
+                    const taskId = previewData.result;
+                    previewTaskIds[index] = taskId;
+
+                    // Monitor preview status
+                    let previewStatus;
+                    do {
+                        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`);
+                        const statusData = await statusResponse.json();
+                        previewStatus = statusData.status;
+                        
+                        if (previewStatus === 'SUCCEEDED' && statusData.model_urls?.glb) {
+                            // Load preview into the corresponding preview canvas
+                            const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
+                            const previewCanvas = previewItem.querySelector('.preview-canvas');
+                            const previewSpinner = previewItem.querySelector('.preview-spinner');
+                            
+                            await loadPreviewModel(statusData.model_urls.glb, previewCanvas);
+                            previewSpinner.style.display = 'none';
+                            previewItem.dataset.taskId = taskId;
+                            
+                            // Make preview item clickable
+                            previewItem.style.cursor = 'pointer';
+                            previewItem.addEventListener('click', () => {
+                                document.querySelectorAll('.preview-item').forEach(i => i.classList.remove('selected'));
+                                previewItem.classList.add('selected');
+                                selectedPreviewId = taskId;
+                                document.getElementById('generate-final').disabled = false;
+                            });
+                            
+                            return taskId;
+                        }
+                        
+                        if (previewStatus === 'FAILED') throw new Error('Preview generation failed');
+                        
+                        await new Promise(r => setTimeout(r, 2000));
+                    } while (previewStatus === 'PENDING' || previewStatus === 'IN_PROGRESS');
+
+                } catch (error) {
+                    console.error(`Preview ${index + 1} failed:`, error);
+                    const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
+                    const previewSpinner = previewItem.querySelector('.preview-spinner');
+                    previewSpinner.innerHTML = 'Generation failed';
+                }
+            });
+
+            try {
+                await Promise.all(previewPromises);
+            } catch (error) {
+                console.error('Preview generation failed:', error);
+                addMessage('Sorry, preview generation failed. Please try again. ~', 'assistant');
+            }
+        }
+
+        function toggleRoleMenu() {
+            const menu = document.getElementById('roleMenu');
+            
+            if (menu.style.display === 'none' || menu.style.display === '') {
+                menu.style.display = 'block';
+            } else {
+                menu.style.display = 'none';
+            }
+        }
+
+        async function loadPreviewModel(modelUrl, container) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            
+            // Make preview models smaller
+            const containerSize = Math.min(300, container.clientWidth);
+            renderer.setSize(containerSize, containerSize);
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 4;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            // Add a second directional light from another angle
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight2.position.set(-5, 5, -5);
+            scene.add(directionalLight2);
+
+            // Add a soft light from below for better visibility
+            const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
+            bottomLight.position.set(0, -5, 0);
+            scene.add(bottomLight);
+
+            camera.position.z = 5;
+
+            const localUrl = await downloadAndCreateBlob(modelUrl);
+            const loader = new THREE.GLTFLoader();
+            
+            return new Promise((resolve, reject) => {
+                loader.load(localUrl, (gltf) => {
+                    URL.revokeObjectURL(localUrl);
+                    const model = gltf.scene;
+                    scene.add(model);
+                    model.scale.set(2, 2, 2);
+
+                    // Center the model
+                    const box = new THREE.Box3().setFromObject(model);
+                    const center = box.getCenter(new THREE.Vector3());
+                    model.position.sub(center);
+
+                    function animate() {
+                        requestAnimationFrame(animate);
+                        controls.update();
+                        renderer.render(scene, camera);
+                    }
+                    animate();
+                    resolve();
+                }, undefined, reject);
+            });
+        }
+
+        function addMessage(message, type) {
+            const messagesContainer = document.querySelector('.chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', `${type}-message`);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Only apply typewriter effect to assistant messages
+            if (type === 'assistant') {
+                let i = 0;
+                messageDiv.textContent = ''; // Start empty
+                
+                function typeNextCharacter() {
+                    if (i < message.length) {
+                        messageDiv.textContent += message[i];
+                        i++;
+                        // Scroll to bottom as typing occurs
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        // Random delay between 10ms and 30ms for more natural typing
+                        setTimeout(typeNextCharacter, Math.random() * 20 + 10);
+                    }
                 }
                 
-                if (previewStatus === 'FAILED') throw new Error('Preview generation failed');
-                
-                await new Promise(r => setTimeout(r, 2000));
-            } while (previewStatus === 'PENDING' || previewStatus === 'IN_PROGRESS');
-
-        } catch (error) {
-            console.error(`Preview ${index + 1} failed:`, error);
-            const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
-            const previewSpinner = previewItem.querySelector('.preview-spinner');
-            previewSpinner.innerHTML = 'Generation failed';
-        }
-    });
-
-    try {
-        await Promise.all(previewPromises);
-    } catch (error) {
-        console.error('Preview generation failed:', error);
-        addMessage('Sorry, preview generation failed. Please try again. ~', 'assistant');
-    }
-}
-
-function toggleRoleMenu() {
-    const menu = document.getElementById('roleMenu');
-    
-    if (menu.style.display === 'none' || menu.style.display === '') {
-        menu.style.display = 'block';
-    } else {
-        menu.style.display = 'none';
-    }
-}
-
-async function loadPreviewModel(modelUrl, container) {
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    
-    // Make preview models smaller
-    const containerSize = Math.min(300, container.clientWidth);
-    renderer.setSize(containerSize, containerSize);
-    container.appendChild(renderer.domElement);
-
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.autoRotate = true; // Add auto-rotation
-    controls.autoRotateSpeed = 4; // Adjust rotation speed
-
-    // In loadPreviewModel function, replace the lighting setup with:
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); // Increased from 0.7
-scene.add(ambientLight);
-
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8); // Increased from 0.5
-directionalLight.position.set(5, 5, 5);
-scene.add(directionalLight);
-
-// Add a second directional light from another angle
-const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.5);
-directionalLight2.position.set(-5, 5, -5);
-scene.add(directionalLight2);
-
-// Add a soft light from below for better visibility
-const bottomLight = new THREE.DirectionalLight(0xffffff, 0.3);
-bottomLight.position.set(0, -5, 0);
-scene.add(bottomLight);
-
-    camera.position.z = 5;
-
-    const localUrl = await downloadAndCreateBlob(modelUrl);
-    const loader = new THREE.GLTFLoader();
-    
-    return new Promise((resolve, reject) => {
-        loader.load(localUrl, (gltf) => {
-            URL.revokeObjectURL(localUrl);
-            const model = gltf.scene;
-            scene.add(model);
-            model.scale.set(2, 2, 2);
-
-            // Center the model
-            const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
-            model.position.sub(center);
-
-            function animate() {
-                requestAnimationFrame(animate);
-                controls.update();
-                renderer.render(scene, camera);
+                typeNextCharacter();
+            } else {
+                // User messages appear instantly
+                messageDiv.textContent = message;
             }
-            animate();
-            resolve();
-        }, undefined, reject);
-    });
-}
-
-function addMessage(message, type) {
-    const messagesContainer = document.querySelector('.chat-messages');
-    const messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', `${type}-message`);
-    messagesContainer.appendChild(messageDiv);
-    
-    // Only apply typewriter effect to assistant messages
-    if (type === 'assistant') {
-        let i = 0;
-        messageDiv.textContent = ''; // Start empty
-        
-        function typeNextCharacter() {
-            if (i < message.length) {
-                messageDiv.textContent += message[i];
-                i++;
-                // Scroll to bottom as typing occurs
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                // Random delay between 10ms and 30ms for more natural typing
-                setTimeout(typeNextCharacter, Math.random() * 20 + 10);
-            }
+            
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
-        
-        typeNextCharacter();
-    } else {
-        // User messages appear instantly
-        messageDiv.textContent = message;
-    }
-    
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
 
         function animate() {
             requestAnimationFrame(animate);
@@ -2431,228 +2397,225 @@ function addMessage(message, type) {
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-    // Existing showcase track code
-    const track = document.querySelector('.showcase-track');
-    if (track) {
-        const items = track.querySelectorAll('.showcase-item');
-        items.forEach(item => {
-            const clone = item.cloneNode(true);
-            track.appendChild(clone);
-        });
-    }
+            // Existing showcase track code
+            const track = document.querySelector('.showcase-track');
+            if (track) {
+                const items = track.querySelectorAll('.showcase-item');
+                items.forEach(item => {
+                    const clone = item.cloneNode(true);
+                    track.appendChild(clone);
+                });
+            }
 
-    // Voice agent morphing and video code
-    const voiceItems = document.querySelectorAll('.voice-item');
-    const characterMorph = document.getElementById('character-morph');
-    
-    // Set up initial Ditto state
-    const videoElement = document.getElementById('character-morph');
-    videoElement.style.backgroundImage = "url('/assets/videos/ditto.gif')";
-    videoElement.style.backgroundSize = "cover";
-    videoElement.style.backgroundPosition = "center";
-
-    const blueOverlay = document.createElement('div');
-blueOverlay.style.position = 'absolute';
-blueOverlay.style.top = '0';
-blueOverlay.style.left = '0';
-blueOverlay.style.width = '100%';
-blueOverlay.style.height = '100%';
-blueOverlay.style.background = 'rgba(0, 255, 255, 0.2)';
-blueOverlay.style.mixBlendMode = 'color';
-blueOverlay.style.pointerEvents = 'none';
-document.querySelector('.hologram-display').appendChild(blueOverlay);
-    
-    videoElement.addEventListener('ended', () => {
-        // Reset to initial state
-        voiceItems.forEach(i => i.classList.remove('active'));
-        videoElement.style.opacity = '0';
-        
-        setTimeout(() => {
-            videoElement.src = ''; // Clear video source
+            // Voice agent morphing and video code
+            const voiceItems = document.querySelectorAll('.voice-item');
+            const characterMorph = document.getElementById('character-morph');
+            
+            // Set up initial Ditto state
+            const videoElement = document.getElementById('character-morph');
             videoElement.style.backgroundImage = "url('/assets/videos/ditto.gif')";
-            videoElement.style.opacity = '1';
-        }, 500);
-    });
+            videoElement.style.backgroundSize = "cover";
+            videoElement.style.backgroundPosition = "center";
 
-    const characters = {
-    elon: {
-        video: '/assets/videos/elon.mp4'
-    },
-    ksi: {
-        video: '/assets/videos/ksi.mp4'
-    },
-    gary: {
-        video: '/assets/videos/gary.mp4'
-    },
-    joeydiaz: {
-        video: '/assets/videos/joeydiaz.mp4'
-    },
-    pokimane: {
-        video: '/assets/videos/pokimane.mp4'
-    }
-};
-
-    voiceItems.forEach(item => {
-        item.addEventListener('click', () => {
-            voiceItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
+            const blueOverlay = document.createElement('div');
+            blueOverlay.style.position = 'absolute';
+            blueOverlay.style.top = '0';
+            blueOverlay.style.left = '0';
+            blueOverlay.style.width = '100%';
+            blueOverlay.style.height = '100%';
+            blueOverlay.style.background = 'rgba(0, 255, 255, 0.2)';
+            blueOverlay.style.mixBlendMode = 'color';
+            blueOverlay.style.pointerEvents = 'none';
+            document.querySelector('.hologram-display').appendChild(blueOverlay);
             
-            const character = item.dataset.character;
-            const video = document.getElementById('character-morph');
-            
-            video.style.opacity = '0';
-            
-            setTimeout(() => {
-                if (characters[character]?.video) {
-                    video.style.backgroundImage = 'none'; // Hide background image
-                    video.src = characters[character].video;
-                    video.load();
-                    video.play();
-                    video.style.opacity = '1';
-                }
-            }, 500);
-        });
-    });
-
-    // Generate final model button
-    document.getElementById('generate-final').addEventListener('click', async () => {
-        if (!selectedPreviewId) return;
-        
-        document.getElementById('preview-modal').style.display = 'none';
-        const statusElement = document.getElementById('status');
-        statusElement.style.display = 'block';
-        statusElement.textContent = 'Generating final model...';
-        updateProgress(75);
-
-        try {
-            const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${MESHY_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    mode: "refine",
-                    preview_task_id: selectedPreviewId,
-                    enable_pbr: true
-                })
+            videoElement.addEventListener('ended', () => {
+                // Reset to initial state
+                voiceItems.forEach(i => i.classList.remove('active'));
+                videoElement.style.opacity = '0';
+                
+                setTimeout(() => {
+                    videoElement.src = ''; // Clear video source
+                    videoElement.style.backgroundImage = "url('/assets/videos/ditto.gif')";
+                    videoElement.style.opacity = '1';
+                }, 500);
             });
 
-            if (!refineResponse.ok) throw new Error('Refine process failed');
-            
-            const refineData = await refineResponse.json();
-            const refineTaskId = refineData.result;
-
-            let refineStatus;
-            do {
-                const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineTaskId}`, {
-                    headers: { 'Authorization': `Bearer ${MESHY_API_KEY}` }
-                });
-                const statusData = await statusResponse.json();
-                refineStatus = statusData.status;
-                downloadUrl = statusData.model_urls?.glb;
-                statusElement.textContent = `Refining: ${refineStatus}`;
-                updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
-
-                if (refineStatus === 'SUCCEEDED' && downloadUrl) {
-                    const promptText = window.currentPrompt;
-                    await saveToDatabase(downloadUrl, promptText);
-                    const localUrl = await downloadAndCreateBlob(downloadUrl);
-                    
-                    const loader = new THREE.GLTFLoader();
-                    loader.load(localUrl, (gltf) => {
-                        URL.revokeObjectURL(localUrl);
-                        if (currentModel) scene.remove(currentModel);
-                        
-                        const newModel = gltf.scene;
-                        currentModel = newModel;
-                        scene.add(newModel);
-                        newModel.scale.set(0, 0, 0);
-                        
-                        // Ditto disappearing animation
-                        gsap.to(dittoModel.scale, {
-                            x: 0, y: 0, z: 0,
-                            duration: 1,
-                            ease: "power2.in"
-                        });
-
-                        // Scale up new model
-                        gsap.to(newModel.scale, {
-                            x: 2, y: 2, z: 2,
-                            duration: 1,
-                            delay: 1,
-                            ease: "power2.out",
-                            onComplete: () => {
-                                gsap.to(newModel.rotation, {
-                                    y: Math.PI * 2,
-                                    duration: 2,
-                                    ease: "power1.inOut"
-                                });
-                                document.querySelector('.animate-btn').style.display = 'block';
-                                document.querySelector('.download-btn').style.display = 'block';
-                            }
-                        });
-                    });
-                    
-                    addMessage('Final model generated successfully! You can now download or animate the model. ~', 'assistant');
-                    return;
+            const characters = {
+                elon: {
+                    video: '/assets/videos/elon.mp4'
+                },
+                ksi: {
+                    video: '/assets/videos/ksi.mp4'
+                },
+                gary: {
+                    video: '/assets/videos/gary.mp4'
+                },
+                joeydiaz: {
+                    video: '/assets/videos/joeydiaz.mp4'
+                },
+                pokimane: {
+                    video: '/assets/videos/pokimane.mp4'
                 }
+            };
 
-                if (refineStatus === 'FAILED') throw new Error('Refine process failed');
+            voiceItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    voiceItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    const character = item.dataset.character;
+                    const video = document.getElementById('character-morph');
+                    
+                    video.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        if (characters[character]?.video) {
+                            video.style.backgroundImage = 'none'; // Hide background image
+                            video.src = characters[character].video;
+                            video.load();
+                            video.play();
+                            video.style.opacity = '1';
+                        }
+                    }, 500);
+                });
+            });
+
+            // Generate final model button
+            document.getElementById('generate-final').addEventListener('click', async () => {
+                if (!selectedPreviewId) return;
                 
-                await new Promise(r => setTimeout(r, 2000));
-            } while (refineStatus === 'PENDING' || refineStatus === 'IN_PROGRESS');
+                document.getElementById('preview-modal').style.display = 'none';
+                const statusElement = document.getElementById('status');
+                statusElement.style.display = 'block';
+                statusElement.textContent = 'Generating final model...';
+                updateProgress(75);
 
-        } catch (error) {
-            console.error('Final generation failed:', error);
-            addMessage('Sorry, the final generation failed. Please try again. ~', 'assistant');
-        } finally {
-            statusElement.style.display = 'none';
-        }
-    });
+                try {
+                    const refineResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            mode: "refine",
+                            preview_task_id: selectedPreviewId,
+                            enable_pbr: true
+                        })
+                    });
 
-    // Cancel button
-    document.getElementById('cancel-preview').addEventListener('click', () => {
-        document.getElementById('preview-modal').style.display = 'none';
-    });
+                    if (!refineResponse.ok) throw new Error('Refine process failed');
+                    
+                    const refineData = await refineResponse.json();
+                    const refineTaskId = refineData.result;
 
-    // Animation and overlay handlers
-    document.querySelector('.animate-btn').addEventListener('click', () => {
-        document.querySelector('.animation-preview').style.display = 'block';
-        document.querySelector('.overlay').style.display = 'block';
-    });
+                    let refineStatus;
+                    do {
+                        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${refineTaskId}`);
+                        const statusData = await statusResponse.json();
+                        refineStatus = statusData.status;
+                        downloadUrl = statusData.model_urls?.glb;
+                        statusElement.textContent = `Refining: ${refineStatus}`;
+                        updateProgress(refineStatus === 'SUCCEEDED' ? 100 : 75);
 
-    document.querySelector('.close-btn').addEventListener('click', () => {
-        document.querySelector('.animation-preview').style.display = 'none';
-        document.querySelector('.overlay').style.display = 'none';
-    });
+                        if (refineStatus === 'SUCCEEDED' && downloadUrl) {
+                            const promptText = window.currentPrompt;
+                            await saveToDatabase(downloadUrl, promptText);
+                            const localUrl = await downloadAndCreateBlob(downloadUrl);
+                            
+                            const loader = new THREE.GLTFLoader();
+                            loader.load(localUrl, (gltf) => {
+                                URL.revokeObjectURL(localUrl);
+                                if (currentModel) scene.remove(currentModel);
+                                
+                                const newModel = gltf.scene;
+                                currentModel = newModel;
+                                scene.add(newModel);
+                                newModel.scale.set(0, 0, 0);
+                                
+                                // Ditto disappearing animation
+                                gsap.to(dittoModel.scale, {
+                                    x: 0, y: 0, z: 0,
+                                    duration: 1,
+                                    ease: "power2.in"
+                                });
 
-    document.querySelector('.overlay').addEventListener('click', () => {
-        document.querySelector('.animation-preview').style.display = 'none';
-        document.querySelector('.overlay').style.display = 'none';
-    });
+                                // Scale up new model
+                                gsap.to(newModel.scale, {
+                                    x: 2, y: 2, z: 2,
+                                    duration: 1,
+                                    delay: 1,
+                                    ease: "power2.out",
+                                    onComplete: () => {
+                                        gsap.to(newModel.rotation, {
+                                            y: Math.PI * 2,
+                                            duration: 2,
+                                            ease: "power1.inOut"
+                                        });
+                                        document.querySelector('.animate-btn').style.display = 'block';
+                                        document.querySelector('.download-btn').style.display = 'block';
+                                    }
+                                });
+                            });
+                            
+                            addMessage('Final model generated successfully! You can now download or animate the model. ~', 'assistant');
+                            return;
+                        }
 
-    // Send button
-    document.querySelector('.send-btn').addEventListener('click', async () => {
-        const input = document.querySelector('.chat-input');
-        const message = input.value.trim();
-        if (message) {
-            addMessage(message, 'user');
-            input.value = '';
-            await handleAIResponse(message);
-        }
-    });
+                        if (refineStatus === 'FAILED') throw new Error('Refine process failed');
+                        
+                        await new Promise(r => setTimeout(r, 2000));
+                    } while (refineStatus === 'PENDING' || refineStatus === 'IN_PROGRESS');
 
-    // Transform button
-    document.querySelector('.transform-btn').addEventListener('click', () => {
-        const promptInput = document.getElementById('prompt');
-        const prompt = promptInput.value.trim();
-        if (prompt) {
-            transform(prompt);
-            promptInput.value = '';
-        }
-    });
-});
+                } catch (error) {
+                    console.error('Final generation failed:', error);
+                    addMessage('Sorry, the final generation failed. Please try again. ~', 'assistant');
+                } finally {
+                    statusElement.style.display = 'none';
+                }
+            });
+
+            // Cancel button
+            document.getElementById('cancel-preview').addEventListener('click', () => {
+                document.getElementById('preview-modal').style.display = 'none';
+            });
+
+            // Animation and overlay handlers
+            document.querySelector('.animate-btn').addEventListener('click', () => {
+                document.querySelector('.animation-preview').style.display = 'block';
+                document.querySelector('.overlay').style.display = 'block';
+            });
+
+            document.querySelector('.close-btn').addEventListener('click', () => {
+                document.querySelector('.animation-preview').style.display = 'none';
+                document.querySelector('.overlay').style.display = 'none';
+            });
+
+            document.querySelector('.overlay').addEventListener('click', () => {
+                document.querySelector('.animation-preview').style.display = 'none';
+                document.querySelector('.overlay').style.display = 'none';
+            });
+
+            // Send button
+            document.querySelector('.send-btn').addEventListener('click', async () => {
+                const input = document.querySelector('.chat-input');
+                const message = input.value.trim();
+                if (message) {
+                    addMessage(message, 'user');
+                    input.value = '';
+                    await handleAIResponse(message);
+                }
+            });
+
+            // Transform button
+            document.querySelector('.transform-btn').addEventListener('click', () => {
+                const promptInput = document.getElementById('prompt');
+                const prompt = promptInput.value.trim();
+                if (prompt) {
+                    transform(prompt);
+                    promptInput.value = '';
+                }
+            });
+        });
     </script>
     <div class="overlay" id="overlay"></div>
     <div class="animation-preview">
@@ -2736,6 +2699,3 @@ document.querySelector('.hologram-display').appendChild(blueOverlay);
     </div>
 </body>
 </html>
-
-
-
