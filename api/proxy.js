@@ -3,24 +3,25 @@ export default async function handler(req, res) {
     
     // Start with headers from the original request
     const headers = { ...req.headers };
-    delete headers.host; // Remove host header as it should not be forwarded
+    delete headers.host; // Remove host header
     
     const fetchOptions = {
         method: req.method,
         headers: headers
     };
 
-    // Use the Authorization header from the request instead of hardcoding
-    if (req.headers.authorization) {
+    // ALWAYS add the Meshy API key for Meshy API calls
+    if (url.includes('api.meshy.ai')) {
+        fetchOptions.headers.authorization = `Bearer ${process.env.MESHY_API_KEY}`;
+    } else if (req.headers.authorization) {
+        // For other APIs, use the forwarded authorization
         fetchOptions.headers.authorization = req.headers.authorization;
     }
 
     if (req.method === 'POST') {
         if (headers['content-type']?.includes('multipart/form-data')) {
-            // For file uploads, pass through the raw body and headers
             fetchOptions.body = req.body;
         } else {
-            // For JSON requests, ensure proper content type
             fetchOptions.headers['content-type'] = 'application/json';
             fetchOptions.body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
         }
@@ -28,11 +29,7 @@ export default async function handler(req, res) {
 
     try {
         console.log('Proxy request to:', url);
-        console.log('Fetch options:', {
-            method: fetchOptions.method,
-            headers: fetchOptions.headers,
-            bodyPreview: fetchOptions.body ? JSON.parse(fetchOptions.body) : null
-        });
+        console.log('Headers:', fetchOptions.headers);
 
         const response = await fetch(url, fetchOptions);
         
@@ -55,7 +52,6 @@ export default async function handler(req, res) {
         
         if (contentType?.includes('application/json')) {
             const data = await response.json();
-            console.log('Successful JSON response:', data);
             res.json(data);
         } else {
             const buffer = await response.arrayBuffer();
@@ -65,8 +61,7 @@ export default async function handler(req, res) {
         console.error('Proxy error:', error);
         res.status(500).json({ 
             error: 'Proxy request failed',
-            message: error.message,
-            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            message: error.message
         });
     }
 }
