@@ -2228,24 +2228,23 @@ async function transform(promptText) {
     addMessage(`Generating previews for: "${promptText}" ~`, 'assistant');
 
     // Create 4 preview tasks in parallel
-    const previewPromises = Array(4).fill().map(async (_, index) => {
-        try {
-            const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${MESHY_API_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    mode: "preview",
-                    prompt: promptText,
-                    art_style: "realistic",
-                    should_remesh: true,
-                    topology: "quad",
-                    target_polycount: 30000,
-                    symmetry_mode: "auto"
-                })
-            });
+    const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+        // Remove Authorization header - let your proxy handle it
+    },
+    body: JSON.stringify({
+        mode: "preview",
+        prompt: promptText,
+        art_style: "realistic",
+        ai_model: "meshy-5",  // Add this - defaults to meshy-5
+        should_remesh: true,
+        topology: "quad",
+        target_polycount: 30000,
+        symmetry_mode: "auto"  // Add this - defaults to auto
+    })
+});
 
             if (!previewResponse.ok) throw new Error('Preview creation failed');
             
@@ -2737,5 +2736,6 @@ document.querySelector('.hologram-display').appendChild(blueOverlay);
     </div>
 </body>
 </html>
+
 
 
