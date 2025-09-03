@@ -2173,103 +2173,171 @@ Response style:
         let selectedPreviewId = null;
 
         async function transform(promptText) {
-            if (!dittoModel) return;
-            window.currentPrompt = promptText;
+    if (!dittoModel) return;
+    window.currentPrompt = promptText;
+    
+    const previewModal = document.getElementById('preview-modal');
+    const generateFinalBtn = document.getElementById('generate-final');
+    previewModal.style.display = 'flex';
+    generateFinalBtn.disabled = true;
+    selectedPreviewId = null;
+    previewTaskIds = [];
+
+    // Clear any previous preview canvases
+    document.querySelectorAll('.preview-canvas').forEach(canvas => {
+        canvas.innerHTML = '';
+    });
+    
+    // Reset spinners
+    document.querySelectorAll('.preview-spinner').forEach(spinner => {
+        spinner.style.display = 'flex';
+    });
+
+    addMessage(`Generating previews for: "${promptText}" ~`, 'assistant');
+
+    // Create 4 preview tasks in parallel
+    const previewPromises = Array(4).fill().map(async (_, index) => {
+        try {
+            console.log(`Starting preview ${index + 1} generation...`);
             
-            const previewModal = document.getElementById('preview-modal');
-            const generateFinalBtn = document.getElementById('generate-final');
-            previewModal.style.display = 'flex';
-            generateFinalBtn.disabled = true;
-            selectedPreviewId = null;
-            previewTaskIds = [];
-
-            // Clear any previous preview canvases
-            document.querySelectorAll('.preview-canvas').forEach(canvas => {
-                canvas.innerHTML = '';
-            });
+            const requestBody = {
+                mode: "preview",
+                prompt: promptText,
+                art_style: "realistic",
+                ai_model: "meshy-5",
+                should_remesh: true,
+                topology: "quad",
+                target_polycount: 30000,
+                symmetry_mode: "auto"
+            };
             
-            // Reset spinners
-            document.querySelectorAll('.preview-spinner').forEach(spinner => {
-                spinner.style.display = 'flex';
+            console.log(`Preview ${index + 1} request:`, requestBody);
+            
+            const previewResponse = await fetch(`${API_BASE}/proxy?url=${encodeURIComponent('https://api.meshy.ai/openapi/v2/text-to-3d')}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
             });
 
-            addMessage(`Generating previews for: "${promptText}" ~`, 'assistant');
-
-            // Create 4 preview tasks in parallel
-            const previewPromises = Array(4).fill().map(async (_, index) => {
-                try {
-                    const previewResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            mode: "preview",
-                            prompt: promptText,
-                            art_style: "realistic",
-                            ai_model: "meshy-5",
-                            should_remesh: true,
-                            topology: "quad",
-                            target_polycount: 30000,
-                            symmetry_mode: "auto"
-                        })
-                    });
-
-                    if (!previewResponse.ok) throw new Error('Preview creation failed');
-                    
-                    const previewData = await previewResponse.json();
-                    const taskId = previewData.result;
-                    previewTaskIds[index] = taskId;
-
-                    // Monitor preview status
-                    let previewStatus;
-                    do {
-                        const statusResponse = await fetch(`${API_BASE}/proxy?url=https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`);
-                        const statusData = await statusResponse.json();
-                        previewStatus = statusData.status;
-                        
-                        if (previewStatus === 'SUCCEEDED' && statusData.model_urls?.glb) {
-                            // Load preview into the corresponding preview canvas
-                            const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
-                            const previewCanvas = previewItem.querySelector('.preview-canvas');
-                            const previewSpinner = previewItem.querySelector('.preview-spinner');
-                            
-                            await loadPreviewModel(statusData.model_urls.glb, previewCanvas);
-                            previewSpinner.style.display = 'none';
-                            previewItem.dataset.taskId = taskId;
-                            
-                            // Make preview item clickable
-                            previewItem.style.cursor = 'pointer';
-                            previewItem.addEventListener('click', () => {
-                                document.querySelectorAll('.preview-item').forEach(i => i.classList.remove('selected'));
-                                previewItem.classList.add('selected');
-                                selectedPreviewId = taskId;
-                                document.getElementById('generate-final').disabled = false;
-                            });
-                            
-                            return taskId;
-                        }
-                        
-                        if (previewStatus === 'FAILED') throw new Error('Preview generation failed');
-                        
-                        await new Promise(r => setTimeout(r, 2000));
-                    } while (previewStatus === 'PENDING' || previewStatus === 'IN_PROGRESS');
-
-                } catch (error) {
-                    console.error(`Preview ${index + 1} failed:`, error);
-                    const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
-                    const previewSpinner = previewItem.querySelector('.preview-spinner');
-                    previewSpinner.innerHTML = 'Generation failed';
-                }
-            });
-
-            try {
-                await Promise.all(previewPromises);
-            } catch (error) {
-                console.error('Preview generation failed:', error);
-                addMessage('Sorry, preview generation failed. Please try again. ~', 'assistant');
+            console.log(`Preview ${index + 1} response status:`, previewResponse.status);
+            
+            if (!previewResponse.ok) {
+                const errorText = await previewResponse.text();
+                console.error(`Preview ${index + 1} error response:`, errorText);
+                throw new Error(`Preview creation failed: ${previewResponse.status} - ${errorText}`);
             }
+            
+            const previewData = await previewResponse.json();
+            console.log(`Preview ${index + 1} response data:`, previewData);
+            
+            if (!previewData.result) {
+                throw new Error('No task ID returned from API');
+            }
+            
+            const taskId = previewData.result;
+            previewTaskIds[index] = taskId;
+
+            // Monitor preview status
+            let previewStatus;
+            let attempts = 0;
+            const maxAttempts = 60; // 2 minutes timeout
+            
+            do {
+                console.log(`Checking status for preview ${index + 1}, attempt ${attempts + 1}`);
+                
+                const statusResponse = await fetch(`${API_BASE}/proxy?url=${encodeURIComponent(`https://api.meshy.ai/openapi/v2/text-to-3d/${taskId}`)}`);
+                
+                if (!statusResponse.ok) {
+                    const errorText = await statusResponse.text();
+                    console.error(`Status check failed for preview ${index + 1}:`, statusResponse.status, errorText);
+                    throw new Error(`Status check failed: ${statusResponse.status}`);
+                }
+                
+                const statusData = await statusResponse.json();
+                console.log(`Preview ${index + 1} status response:`, statusData);
+                
+                previewStatus = statusData.status;
+                
+                if (previewStatus === 'SUCCEEDED' && statusData.model_urls?.glb) {
+                    console.log(`Preview ${index + 1} succeeded! GLB URL:`, statusData.model_urls.glb);
+                    
+                    // Load preview into the corresponding preview canvas
+                    const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
+                    if (!previewItem) {
+                        console.error(`Preview item not found for index ${index}`);
+                        return;
+                    }
+                    
+                    const previewCanvas = previewItem.querySelector('.preview-canvas');
+                    const previewSpinner = previewItem.querySelector('.preview-spinner');
+                    
+                    try {
+                        await loadPreviewModel(statusData.model_urls.glb, previewCanvas);
+                        previewSpinner.style.display = 'none';
+                        previewItem.dataset.taskId = taskId;
+                        
+                        // Make preview item clickable
+                        previewItem.style.cursor = 'pointer';
+                        previewItem.addEventListener('click', () => {
+                            document.querySelectorAll('.preview-item').forEach(i => i.classList.remove('selected'));
+                            previewItem.classList.add('selected');
+                            selectedPreviewId = taskId;
+                            document.getElementById('generate-final').disabled = false;
+                        });
+                        
+                        return taskId;
+                    } catch (modelLoadError) {
+                        console.error(`Failed to load preview model ${index + 1}:`, modelLoadError);
+                        previewSpinner.innerHTML = 'Model load failed';
+                        return null;
+                    }
+                }
+                
+                if (previewStatus === 'FAILED') {
+                    const errorMessage = statusData.task_error?.message || 'Unknown error';
+                    console.error(`Preview ${index + 1} failed:`, errorMessage);
+                    throw new Error(`Preview generation failed: ${errorMessage}`);
+                }
+                
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    throw new Error('Preview generation timed out after 2 minutes');
+                }
+                
+                // Wait 2 seconds before next status check
+                await new Promise(r => setTimeout(r, 2000));
+                
+            } while (previewStatus === 'PENDING' || previewStatus === 'IN_PROGRESS');
+
+        } catch (error) {
+            console.error(`Preview ${index + 1} failed:`, error);
+            const previewItem = document.querySelector(`.preview-item[data-index="${index}"]`);
+            if (previewItem) {
+                const previewSpinner = previewItem.querySelector('.preview-spinner');
+                previewSpinner.innerHTML = `Failed: ${error.message}`;
+            }
+            return null;
         }
+    });
+
+    try {
+        const results = await Promise.all(previewPromises);
+        const successfulPreviews = results.filter(result => result !== null);
+        
+        if (successfulPreviews.length === 0) {
+            addMessage('All preview generations failed. Please check your API key and try again. ~', 'assistant');
+        } else if (successfulPreviews.length < 4) {
+            addMessage(`${successfulPreviews.length} out of 4 previews generated successfully. You can select from the available options. ~`, 'assistant');
+        } else {
+            addMessage('All 4 previews generated successfully! Select your preferred model to continue. ~', 'assistant');
+        }
+    } catch (error) {
+        console.error('Preview generation failed:', error);
+        addMessage('Sorry, preview generation failed. Please try again. ~', 'assistant');
+    }
+}
 
         function toggleRoleMenu() {
             const menu = document.getElementById('roleMenu');
@@ -2699,3 +2767,4 @@ Response style:
     </div>
 </body>
 </html>
+
